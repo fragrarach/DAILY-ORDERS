@@ -13,26 +13,41 @@ def dev_check():
         return False
 
 
+# Initialize production DB connection, listen cursor and query cursor
+def sigm_conn():
+    global conn_sigm, sigm_query
+    if dev_check():
+        conn_sigm = psycopg2.connect("host='192.168.0.57' dbname='DEV' user='SIGM' port='5493'")
+    else:
+        conn_sigm = psycopg2.connect("host='192.168.0.250' dbname='QuatroAir' user='SIGM' port='5493'")
+    conn_sigm.set_client_encoding("latin1")
+    conn_sigm.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+
+    sigm_listen = conn_sigm.cursor()
+    sigm_listen.execute("LISTEN daily_orders;")
+    sigm_query = conn_sigm.cursor()
+
+    return conn_sigm, sigm_query
+
+
+# Initialize log DB connection, listen cursor and query cursor
+def log_conn():
+    global conn_log, log_query
+    if dev_check():
+        conn_log = psycopg2.connect("host='192.168.0.57' dbname='LOG' user='SIGM' port='5493'")
+    else:
+        conn_log = psycopg2.connect("host='192.168.0.250' dbname='LOG' user='SIGM' port='5493'")
+    conn_log.set_client_encoding("latin1")
+    conn_log.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+
+    log_query = conn_log.cursor()
+
+    return conn_log, log_query
+
+
 # PostgreSQL DB connection configs
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
-
-if dev_check():
-    conn_sigm = psycopg2.connect("host='192.168.0.57' dbname='DEV' user='SIGM' port='5493'")
-else:
-    conn_sigm = psycopg2.connect("host='192.168.0.250' dbname='QuatroAir' user='SIGM' port='5493'")
-conn_sigm.set_client_encoding("latin1")
-conn_sigm.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
-
-sigm_listen = conn_sigm.cursor()
-sigm_listen.execute("LISTEN daily_orders;")
-sigm_query = conn_sigm.cursor()
-
-conn_log = psycopg2.connect("host='192.168.0.250' dbname='LOG' user='SIGM' port='5493'")
-conn_log.set_client_encoding("latin1")
-conn_log.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
-
-log_query = conn_log.cursor()
 
 
 # Split base variables from payload string, return named variables
@@ -101,31 +116,44 @@ def removed_part(change_type, ord_no, orl_id, orl_price, prt_no, orl_quantity, p
     log_query.execute(sql_exp)
 
 
-# TODO : Catch connection error during DB service downtime
 def main():
+    global conn_sigm, sigm_query, conn_log, log_query
+    conn_sigm, sigm_query = sigm_conn()
+    conn_log, log_query = log_conn()
     while 1:
-        conn_sigm.poll()
-        conn_sigm.commit()
-        while conn_sigm.notifies:
-            notify = conn_sigm.notifies.pop()
-            raw_payload = notify.payload
+        try:
+            conn_sigm.poll()
+        except:
+            print('Database cannot be accessed, PostgreSQL service probably rebooting')
+            try:
+                conn_sigm.close()
+                conn_sigm, sigm_query = sigm_conn()
+                conn_log.close()
+                conn_log, log_query = log_conn()
+            except:
+                pass
+        else:
+            conn_sigm.commit()
+            while conn_sigm.notifies:
+                notify = conn_sigm.notifies.pop()
+                raw_payload = notify.payload
 
-            change_type, ord_no = base_payload_handler(raw_payload)
+                change_type, ord_no = base_payload_handler(raw_payload)
 
-            if change_type == 'CONVERTED QUOTE':
-                converted_quote(change_type, ord_no)
+                if change_type == 'CONVERTED QUOTE':
+                    converted_quote(change_type, ord_no)
 
-            elif change_type == 'ADDED PART':
-                orl_id = added_part_payload_handler(raw_payload)
-                added_part(change_type, ord_no, orl_id)
+                elif change_type == 'ADDED PART':
+                    orl_id = added_part_payload_handler(raw_payload)
+                    added_part(change_type, ord_no, orl_id)
 
-            elif change_type == 'PRICE CHANGED':
-                orl_id, orl_price = price_changed_payload_handler(raw_payload)
-                price_changed(change_type, ord_no, orl_id, orl_price)
+                elif change_type == 'PRICE CHANGED':
+                    orl_id, orl_price = price_changed_payload_handler(raw_payload)
+                    price_changed(change_type, ord_no, orl_id, orl_price)
 
-            elif change_type == 'REMOVED PART':
-                orl_id, orl_price, prt_no, orl_quantity, prt_dscnt = removed_part_payload_handler(raw_payload)
-                removed_part(change_type, ord_no, orl_id, orl_price, prt_no, orl_quantity, prt_dscnt)
+                elif change_type == 'REMOVED PART':
+                    orl_id, orl_price, prt_no, orl_quantity, prt_dscnt = removed_part_payload_handler(raw_payload)
+                    removed_part(change_type, ord_no, orl_id, orl_price, prt_no, orl_quantity, prt_dscnt)
 
 
 main()
