@@ -1,61 +1,260 @@
 DROP VIEW IF EXISTS daily_orders_updated_quotes;
 CREATE OR REPLACE VIEW daily_orders_updated_quotes AS (
     SELECT
+    --Line reference
     ol.orl_id,
+
+    --Header body
+
+    --Header column 1
     ol.ord_no,
+    TRIM(oh.ord_pmt_term_desc) AS ord_pmt_term_desc,
+
+    --Header column 2
     oh.ord_date,
-    trim(oh.ord_cli_ord_no) AS ord_cli_ord_no,
-    trim(s.sal_name) AS sal_name,
+    TRIM(oh.ord_ship_term_desc) AS ord_ship_term_desc,
 
-    CASE    WHEN oh.ord_type = 1 then (select trim(orc_type1) from order_config)
-            WHEN oh.ord_type = 2 then (select trim(orc_type2) from order_config)
-            WHEN oh.ord_type = 3 then (select trim(orc_type3) from order_config)
-            WHEN oh.ord_type = 4 then (select trim(orc_type4) from order_config)
-            WHEN oh.ord_type = 5 then (select trim(orc_type5) from order_config)
-            WHEN oh.ord_type = 6 then (select trim(orc_type6) from order_config)
-            WHEN oh.ord_type = 7 then (select trim(orc_type7) from order_config)
-            WHEN oh.ord_type = 8 then (select trim(orc_type8) from order_config)
-            WHEN oh.ord_type = 9 then (select trim(orc_type9) from order_config)
-            WHEN oh.ord_type = 10 then (select trim(orc_type10) from order_config)
-    END as ord_type,
+    --Header column 3
+    TRIM(oh.ord_cli_ord_no) AS ord_cli_ord_no,
+    TRIM(oh.car_name) AS car_name,
 
-    CASE    WHEN oh.ord_status = 'A' then 'Complete Shipment'
-            WHEN oh.ord_status = 'B' then 'Partial Shipment'
-            WHEN oh.ord_status = 'C' then 'Cancelled Order'
-            WHEN oh.ord_status = 'D' then 'Pending Shipment'
-            WHEN oh.ord_status = 'E' then 'Quote'
-            WHEN oh.ord_status = 'F' then 'Cancelled Quote'
-            WHEN oh.ord_status = 'G' then 'Waiting for Backorder'
-            WHEN oh.ord_status = 'H' then 'Waiting for Backorder Authorization'
-            WHEN oh.ord_status = 'I' then 'Invoiced'
-    END as ord_status,
-
-    trim(oh.ord_pmt_term_desc) as ord_pmt_term_desc,
-    (SELECT cur_name FROM currency WHERE c.cli_currency = cur_id),
-    trim(oh.ord_ship_term_desc) as ord_ship_term_desc,
-    trim(oh.car_name) as car_name,
-
-    CASE    WHEN oh.inv_cli_id = 0 THEN trim(c.cli_no)
-            WHEN oh.inv_cli_id <> 0 THEN (select trim(cli_no) from client where cli_id = inv_cli_id) 
-    END AS inv_cli_no,
-    trim(oh.inv_name1) as inv_name1,
-    trim(oh.inv_name2) as inv_name2,
-    trim(oh.inv_addr) as inv_addr,
+    --Header column 4
+    TRIM(s.sal_name) AS sal_name,
+    (
+        SELECT cur_name
+        FROM currency
+        WHERE c.cli_currency = cur_id
+    ) AS cur_name,
+    --TODO : Convert 'orc_type' columns to rows on a view, join 'ord_type' to 'orc_type', replace this CASE statement
     CASE
-        WHEN inv_cli_id = 0 THEN (
-            trim(oh.inv_city) || ', ' ||
+        WHEN
+            oh.ord_type = 1
+        THEN
             (
-                SELECT cc_code_char 
-                FROM vw_client_country 
-                WHERE cc_code_num IN (
-                    SELECT DISTINCT cli_cntry 
-                    FROM client 
-                    WHERE client.cli_id = oh.cli_id
+                SELECT TRIM(orc_type1)
+                FROM order_config
+            )
+
+        WHEN
+            oh.ord_type = 2
+        THEN
+            (
+                SELECT TRIM(orc_type2)
+                FROM order_config
+            )
+
+        WHEN
+            oh.ord_type = 3
+        THEN
+            (
+                SELECT TRIM(orc_type3)
+                FROM order_config
+            )
+
+        WHEN
+            oh.ord_type = 4
+        THEN
+            (
+                SELECT TRIM(orc_type4)
+                FROM order_config
+            )
+
+        WHEN
+            oh.ord_type = 5
+        THEN
+            (
+                SELECT TRIM(orc_type5)
+                FROM order_config
+            )
+
+        WHEN
+            oh.ord_type = 6
+        THEN
+            (
+                SELECT TRIM(orc_type6)
+                FROM order_config
+            )
+
+        WHEN
+            oh.ord_type = 7
+        THEN
+            (
+                SELECT TRIM(orc_type7)
+                FROM order_config
+            )
+
+        WHEN
+            oh.ord_type = 8
+        THEN
+            (
+                SELECT TRIM(orc_type8)
+                FROM order_config
+            )
+
+        WHEN
+            oh.ord_type = 9
+        THEN
+            (
+                SELECT TRIM(orc_type9)
+                FROM order_config
+            )
+
+        WHEN
+            oh.ord_type = 10
+        THEN
+            (
+                SELECT TRIM(orc_type10)
+                FROM order_config
+            )
+    END AS ord_type,
+
+    --Header column 5
+    -- TODO : Store verbose order status in a view, join to 'ord_status', replace this CASE statement
+    CASE
+        WHEN
+            oh.ord_status = 'A'
+        THEN
+            'Complete Shipment'
+
+        WHEN
+            oh.ord_status = 'B'
+        THEN
+            'Partial Shipment'
+
+        WHEN
+            oh.ord_status = 'C'
+        THEN
+            'Cancelled Order'
+
+        WHEN
+            oh.ord_status = 'D'
+        THEN
+            'Pending Shipment'
+
+        WHEN
+            oh.ord_status = 'E'
+        THEN
+            'Quote'
+
+        WHEN
+            oh.ord_status = 'F'
+        THEN
+            'Cancelled Quote'
+
+        WHEN
+            oh.ord_status = 'G'
+        THEN
+            'Waiting for Backorder'
+
+        WHEN
+            oh.ord_status = 'H'
+        THEN
+            'Waiting for Backorder Authorization'
+
+        WHEN
+            oh.ord_status = 'I'
+        THEN
+            'Invoiced'
+    END AS ord_status,
+
+    --Shipping body
+
+    --Invoicing column
+    CASE
+        WHEN
+            oh.inv_cli_id = 0
+        THEN
+            TRIM(c.cli_no)
+
+        WHEN
+            oh.inv_cli_id <> 0
+        THEN
+            (
+                SELECT TRIM(cli_no)
+                FROM client
+                WHERE cli_id = inv_cli_id
+            )
+    END AS inv_cli_no,
+    CASE
+        WHEN
+            oh.inv_cli_id = 0
+        THEN
+            (
+                SELECT string_agg(TRIM(cgr_desc), ', ') 
+                FROM client_grouping 
+                WHERE cgr_no LIKE '0%'
+                AND cgr_id IN (
+                    SELECT cgr_id 
+                    FROM client_grouping_line 
+                    WHERE cli_id = oh.cli_id
                 )
             )
-        )
-        WHEN inv_cli_id <> 0 THEN (
-            trim(oh.inv_city) || ', ' ||
+        WHEN
+            oh.inv_cli_id <> 0
+        THEN
+            (
+                SELECT string_agg(TRIM(cgr_desc), ', ') 
+                FROM client_grouping 
+                WHERE cgr_no LIKE '0%'
+                AND cgr_id IN (
+                    SELECT cgr_id 
+                    FROM client_grouping_line 
+                    WHERE cli_id = oh.inv_cli_id
+                )
+            )
+    END AS inv_cli_type,
+    CASE
+        WHEN
+            oh.inv_cli_id = 0
+        THEN
+            (
+                SELECT string_agg(TRIM(cgr_desc), ', ') 
+                FROM client_grouping 
+                WHERE cgr_no LIKE '1%'
+                AND cgr_id IN (
+                    SELECT cgr_id 
+                    FROM client_grouping_line 
+                    WHERE cli_id = oh.cli_id
+                )
+            )
+        WHEN
+            oh.inv_cli_id <> 0
+        THEN
+            (
+                SELECT string_agg(TRIM(cgr_desc), ', ') 
+                FROM client_grouping 
+                WHERE cgr_no LIKE '1%'
+                AND cgr_id IN (
+                    SELECT cgr_id 
+                    FROM client_grouping_line 
+                    WHERE cli_id = oh.inv_cli_id
+                )
+            )
+    END AS inv_cli_ind,
+    TRIM(oh.inv_name1) AS inv_name1,
+    TRIM(oh.inv_name2) AS inv_name2,
+    TRIM(oh.inv_addr) AS inv_addr,
+    CASE
+        WHEN
+            inv_cli_id = 0
+        THEN
+            (
+                TRIM(oh.inv_city) || ', ' ||
+                (
+                    SELECT cc_code_char
+                    FROM vw_client_country
+                    WHERE cc_code_num IN (
+                        SELECT DISTINCT cli_cntry
+                        FROM client
+                        WHERE client.cli_id = oh.cli_id
+                    )
+                )
+            )
+        WHEN
+            inv_cli_id <> 0
+        THEN
+        (
+            TRIM(oh.inv_city) || ', ' ||
             (
                 SELECT cc_code_char 
                 FROM vw_client_country 
@@ -67,15 +266,35 @@ CREATE OR REPLACE VIEW daily_orders_updated_quotes AS (
             )
         )
     END AS inv_city,
-    trim(oh.inv_pc) as inv_pc,
-    trim(oh.inv_phone) as inv_phone,
+    TRIM(oh.inv_pc) AS inv_pc,
+    TRIM(oh.inv_phone) AS inv_phone,
 
-    trim(c.cli_no) AS del_cli_no,
-    trim(oh.cli_del_name1) as del_name1,
-    trim(oh.cli_del_name2) as del_name2,
-    trim(oh.cli_del_addr) as del_addr,
-    
-    trim(oh.cli_del_city) || ', ' ||
+    --Shipping column
+    TRIM(c.cli_no) AS del_cli_no,
+    (
+        SELECT string_agg(TRIM(cgr_desc), ', ') 
+        FROM client_grouping 
+        WHERE cgr_no LIKE '0%'
+        AND cgr_id IN (
+            SELECT cgr_id 
+            FROM client_grouping_line 
+            WHERE cli_id = oh.cli_id
+        )
+    ) AS cli_type,
+    (
+        SELECT string_agg(TRIM(cgr_desc), ', ') 
+        FROM client_grouping 
+        WHERE cgr_no LIKE '1%'
+        AND cgr_id IN (
+            SELECT cgr_id 
+            FROM client_grouping_line 
+            WHERE cli_id = oh.cli_id
+        )
+    ) AS cli_ind,
+    TRIM(oh.cli_del_name1) AS del_name1,
+    TRIM(oh.cli_del_name2) AS del_name2,
+    TRIM(oh.cli_del_addr) AS del_addr,
+    TRIM(oh.cli_del_city) || ', ' ||
     (
         SELECT cc_code_char 
         FROM vw_client_country 
@@ -85,58 +304,149 @@ CREATE OR REPLACE VIEW daily_orders_updated_quotes AS (
             WHERE client.cli_id = oh.cli_id
         )
     ) AS del_city,
-    
-    -- trim(oh.cli_del_city) as del_city,
-    
-    trim(oh.cli_del_pc) as del_pc,
-    trim(oh.cli_phone1) as del_phone,
+    TRIM(oh.cli_del_pc) AS del_pc,
+    TRIM(oh.cli_phone1) AS del_phone,
 
-    trim(oh.ord_note1) as ord_note1,
-    trim(oh.ord_note2) as ord_note2,
-    trim(oh.ord_note3) as ord_note3,
-    trim(oh.ord_note4) as ord_note4,
+    --Notes column
+    TRIM(oh.ord_note1) AS ord_note1,
+    TRIM(oh.ord_note2) AS ord_note2,
+    TRIM(oh.ord_note3) AS ord_note3,
+    TRIM(oh.ord_note4) AS ord_note4,
 
+    --Order line body
+
+    --Order line row
     ol.prt_no,
     ol.prt_desc,
     ol.orl_quantity,
+    ol.orl_reserved_qty,
     ol.orl_req_dt,
-    (select prt_price from client_contracts where c.cli_no = client_contracts.cli_no and p.prt_no = client_contracts.prt_no LIMIT 1)::numeric(17,2) as con_price,
-    (select ppr_price from part_price where ol.prt_id = prt_id and c.cli_price_level = ppr_sort_idx),
-    ol.orl_price::numeric(17,2),
-    
+    (
+        SELECT prt_price
+        FROM client_contracts
+        WHERE c.cli_no = client_contracts.cli_no
+        AND p.prt_no = client_contracts.prt_no LIMIT 1
+    )::NUMERIC(17,2) AS con_price,
+    -- TODO : Unused statement/column, remove
+    (
+        SELECT ppr_price
+        FROM part_price
+        WHERE ol.prt_id = prt_id
+        AND c.cli_price_level = ppr_sort_idx
+    ),
+    ol.orl_price::NUMERIC(17,2),
     CASE
-    when ol.orl_price = (select prt_price from client_contracts where c.cli_no = client_contracts.cli_no and p.prt_no = client_contracts.prt_no LIMIT 1) then 'Contract'
-    WHEN ol.orl_price = (select ppr_price from part_price where ol.prt_id = prt_id and c.cli_price_level = ppr_sort_idx) then 'List'
-    ELSE 'Manual'
-    end as price_type,
-    
-    (c.cli_dscnt / 100)::numeric(17,2) as cli_dscnt,
+        WHEN 
+            ol.orl_price = (
+                SELECT prt_price 
+                FROM client_contracts 
+                WHERE c.cli_no = client_contracts.cli_no 
+                AND p.prt_no = client_contracts.prt_no LIMIT 1
+            ) 
+        THEN 
+            'Contract'
+            
+        WHEN 
+            ol.orl_price = (
+                SELECT ppr_price 
+                FROM part_price 
+                WHERE ol.prt_id = prt_id 
+                AND c.cli_price_level = ppr_sort_idx
+            ) 
+        THEN 
+            'List'
+
+        ELSE 
+            'Manual'
+    END AS price_type,
+    (c.cli_dscnt / 100)::NUMERIC(17,2) AS cli_dscnt,
     CASE 
-    WHEN (select (prt_dscnt / 100) from client_contracts where c.cli_no = client_contracts.cli_no and p.prt_no = client_contracts.prt_no LIMIT 1)::numeric(17,2) is null then 0.00 
-    else (select (prt_dscnt / 100) from client_contracts where c.cli_no = client_contracts.cli_no and p.prt_no = client_contracts.prt_no LIMIT 1)::numeric(17,2) 
-    end as con_dscnt,
-    (ol.prt_dscnt / 100)::numeric(17,2) as prt_dscnt,
-    
+        WHEN
+            (
+                SELECT (prt_dscnt / 100)
+                FROM client_contracts
+                WHERE c.cli_no = client_contracts.cli_no
+                AND p.prt_no = client_contracts.prt_no LIMIT 1
+            )::NUMERIC(17,2) IS NULL
+        THEN
+            0.00
+
+        ELSE
+            (
+                SELECT (prt_dscnt / 100)
+                FROM client_contracts
+                WHERE c.cli_no = client_contracts.cli_no
+                AND p.prt_no = client_contracts.prt_no LIMIT 1
+            )::NUMERIC(17,2)
+    END AS con_dscnt,
+    (ol.prt_dscnt / 100)::NUMERIC(17,2) AS prt_dscnt,
     CASE
-    WHEN ol.prt_dscnt = 0 then null
-    WHEN ol.prt_dscnt = (select prt_dscnt from client_contracts where c.cli_no = client_contracts.cli_no and p.prt_no = client_contracts.prt_no LIMIT 1) THEN 'Contract Part'
-    when ol.prt_dscnt = (SELECT pgr_dscnt FROM contract_group_line where contract_group_line.con_id IN (SELECT con_id from client_contract where client_contract.cli_id = c.cli_id) and p.pgr_id = contract_group_line.pgr_id) THEN 'Contract Group'
-    when ol.prt_dscnt = c.cli_dscnt then 'Client File'
-    ELSE 'Manual'
-    end as dscnt_type,
+        WHEN
+            ol.prt_dscnt = 0
+        THEN
+            NULL
 
-    (ol.orl_price * (1 - ol.prt_dscnt / 100))::numeric(17,2) as orl_net_price,
-    (ol.orl_price * (1 - ol.prt_dscnt / 100) * ol.orl_quantity)::numeric(17,2) as orl_total_price,
+        WHEN
+            ol.prt_dscnt = (
+                SELECT prt_dscnt
+                FROM client_contracts
+                WHERE c.cli_no = client_contracts.cli_no
+                AND p.prt_no = client_contracts.prt_no LIMIT 1
+            )
+        THEN
+            'Contract Part'
 
+        WHEN
+            ol.prt_dscnt = (
+                SELECT pgr_dscnt
+                FROM contract_group_line
+                WHERE contract_group_line.con_id IN (
+                    SELECT con_id
+                    FROM client_contract
+                    WHERE client_contract.cli_id = c.cli_id
+                )
+                AND p.pgr_id = contract_group_line.pgr_id
+            )
+        THEN
+            'Contract Group'
+
+        WHEN
+            ol.prt_dscnt = c.cli_dscnt
+        THEN
+            'Client File'
+
+        ELSE
+            'Manual'
+    END AS dscnt_type,
+    (ol.orl_price * (1 - ol.prt_dscnt / 100))::NUMERIC(17,2) AS orl_net_price,
+    (ol.orl_price * (1 - ol.prt_dscnt / 100) * ol.orl_quantity)::NUMERIC(17,2) AS orl_total_price,
+    CASE
+        WHEN
+            (
+                SELECT ppr_price
+                FROM part_price
+                WHERE ol.prt_id = prt_id
+                AND c.cli_price_level = ppr_sort_idx
+            ) <> 0
+        THEN
+            (
+                1 - (ol.orl_price * (1 - ol.prt_dscnt / 100))::NUMERIC(17,2) / (
+                    SELECT ppr_price
+                    FROM part_price
+                    WHERE ol.prt_id = prt_id
+                    AND c.cli_price_level = ppr_sort_idx
+                )
+            )
+        ELSE
+            (ol.prt_dscnt / 100)::NUMERIC(17,2)
+    END AS net_dscnt,
+
+    --Order total footer
     oh.ord_pkg_cost,
     oh.ord_tship_rate,
     oh.ord_ttax1_amnt,
-    oh.ord_ttax2_amnt,
-    
-    CASE
-    WHEN (select ppr_price from part_price where ol.prt_id = prt_id and c.cli_price_level = ppr_sort_idx) <> 0 THEN (1 - (ol.orl_price * (1 - ol.prt_dscnt / 100))::numeric(17,2) / (select ppr_price from part_price where ol.prt_id = prt_id and c.cli_price_level = ppr_sort_idx))
-    ELSE (ol.prt_dscnt / 100)::numeric(17,2)
-    END as net_dscnt
+    oh.ord_ttax2_amnt
+    --TODO : Remove sub total and grand total statements from VBA, place them here
     
     FROM order_header AS oh
     JOIN order_line AS ol ON ol.ord_id = oh.ord_id
@@ -144,6 +454,7 @@ CREATE OR REPLACE VIEW daily_orders_updated_quotes AS (
     JOIN part_group AS pg ON pg.pgr_id = p.pgr_id
     JOIN client AS c ON c.cli_id = oh.cli_id
     JOIN salesman s ON c.sal_id = s.sal_id
+    
     WHERE orl_kitmaster_id = 0
     and oh.ord_no in (SELECT * from dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM', 'select ord_no from daily_orders_updated') as t1(ord_no integer))
     AND ol.prt_id NOT IN (

@@ -159,7 +159,7 @@ CREATE OR REPLACE VIEW daily_orders AS (
 
     --Shipping body
 
-    -- TODO : Add 'cli_no' to invoicing column in VBA file
+    --Invoicing column
     CASE
         WHEN
             oh.inv_cli_id = 0
@@ -175,8 +175,62 @@ CREATE OR REPLACE VIEW daily_orders AS (
                 WHERE cli_id = inv_cli_id
             )
     END AS inv_cli_no,
-
-    --Invoicing column
+    CASE
+        WHEN
+            oh.inv_cli_id = 0
+        THEN
+            (
+                SELECT string_agg(TRIM(cgr_desc), ', ') 
+                FROM client_grouping 
+                WHERE cgr_no LIKE '0%'
+                AND cgr_id IN (
+                    SELECT cgr_id 
+                    FROM client_grouping_line 
+                    WHERE cli_id = oh.cli_id
+                )
+            )
+        WHEN
+            oh.inv_cli_id <> 0
+        THEN
+            (
+                SELECT string_agg(TRIM(cgr_desc), ', ') 
+                FROM client_grouping 
+                WHERE cgr_no LIKE '0%'
+                AND cgr_id IN (
+                    SELECT cgr_id 
+                    FROM client_grouping_line 
+                    WHERE cli_id = oh.inv_cli_id
+                )
+            )
+    END AS inv_cli_type,
+    CASE
+        WHEN
+            oh.inv_cli_id = 0
+        THEN
+            (
+                SELECT string_agg(TRIM(cgr_desc), ', ') 
+                FROM client_grouping 
+                WHERE cgr_no LIKE '1%'
+                AND cgr_id IN (
+                    SELECT cgr_id 
+                    FROM client_grouping_line 
+                    WHERE cli_id = oh.cli_id
+                )
+            )
+        WHEN
+            oh.inv_cli_id <> 0
+        THEN
+            (
+                SELECT string_agg(TRIM(cgr_desc), ', ') 
+                FROM client_grouping 
+                WHERE cgr_no LIKE '1%'
+                AND cgr_id IN (
+                    SELECT cgr_id 
+                    FROM client_grouping_line 
+                    WHERE cli_id = oh.inv_cli_id
+                )
+            )
+    END AS inv_cli_ind,
     TRIM(oh.inv_name1) AS inv_name1,
     TRIM(oh.inv_name2) AS inv_name2,
     TRIM(oh.inv_addr) AS inv_addr,
@@ -217,6 +271,26 @@ CREATE OR REPLACE VIEW daily_orders AS (
 
     --Shipping column
     TRIM(c.cli_no) AS del_cli_no,
+    (
+        SELECT string_agg(TRIM(cgr_desc), ', ') 
+        FROM client_grouping 
+        WHERE cgr_no LIKE '0%'
+        AND cgr_id IN (
+            SELECT cgr_id 
+            FROM client_grouping_line 
+            WHERE cli_id = oh.cli_id
+        )
+    ) AS cli_type,
+    (
+        SELECT string_agg(TRIM(cgr_desc), ', ') 
+        FROM client_grouping 
+        WHERE cgr_no LIKE '1%'
+        AND cgr_id IN (
+            SELECT cgr_id 
+            FROM client_grouping_line 
+            WHERE cli_id = oh.cli_id
+        )
+    ) AS cli_ind,
     TRIM(oh.cli_del_name1) AS del_name1,
     TRIM(oh.cli_del_name2) AS del_name2,
     TRIM(oh.cli_del_addr) AS del_addr,
@@ -245,6 +319,7 @@ CREATE OR REPLACE VIEW daily_orders AS (
     ol.prt_no,
     ol.prt_desc,
     ol.orl_quantity,
+    ol.orl_reserved_qty,
     ol.orl_req_dt,
     (
         SELECT prt_price
