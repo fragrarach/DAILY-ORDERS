@@ -456,7 +456,7 @@ CREATE OR REPLACE VIEW daily_orders_updated_quotes AS (
     JOIN salesman s ON c.sal_id = s.sal_id
     
     WHERE orl_kitmaster_id = 0
-    and oh.ord_no in (SELECT * from dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM', 'select ord_no from daily_orders_updated') as t1(ord_no integer))
+    and oh.ord_no IN (SELECT * from dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM', 'select ord_no from daily_orders_updated') as t1(ord_no integer))
     AND ol.prt_id NOT IN (
         SELECT prt_id
         FROM order_line
@@ -470,6 +470,6 @@ CREATE OR REPLACE VIEW daily_orders_updated_quotes AS (
             )
         )
     )
-    AND oh.ord_status = 'E'
-    ORDER BY sal_name, oh.ord_no
+    AND oh.ord_status IN ('E', 'F')
+    ORDER BY sal_name, ord_no, orl_sort_idx
 )

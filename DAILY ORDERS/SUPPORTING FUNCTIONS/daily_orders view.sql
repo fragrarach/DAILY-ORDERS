@@ -479,6 +479,6 @@ CREATE OR REPLACE VIEW daily_orders AS (
             )
         )
     )
-    AND oh.ord_status NOT IN ('D', 'E')
-    ORDER BY sal_name, ord_no
+    AND oh.ord_status NOT IN ('D', 'E', 'F')
+    ORDER BY sal_name, ord_no, orl_sort_idx
 )

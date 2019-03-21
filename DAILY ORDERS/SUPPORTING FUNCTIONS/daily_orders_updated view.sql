@@ -469,6 +469,7 @@ CREATE OR REPLACE VIEW daily_orders_updated AS (
                 WHERE order_line.ord_no = oh.ord_no
             )
         )
-    )        
-    ORDER BY sal_name, oh.ord_no
+    )       
+    AND oh.ord_status NOT IN ('D', 'E', 'F')    
+    ORDER BY sal_name, ord_no, orl_sort_idx
 )

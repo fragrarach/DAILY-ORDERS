@@ -471,5 +471,5 @@ CREATE OR REPLACE VIEW daily_orders_pending AS (
         )
     )
     AND oh.ord_status = 'D'
-    ORDER BY sal_name, ord_no
+    ORDER BY sal_name, ord_no, orl_sort_idx
 )

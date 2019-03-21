@@ -471,6 +471,6 @@ CREATE OR REPLACE VIEW daily_orders_quotes AS (
             )
         )
     )
-    AND oh.ord_status = 'E'
-    ORDER BY sal_name, ord_no
+    AND oh.ord_status IN ('E', 'F')
+    ORDER BY sal_name, ord_no, orl_sort_idx
 )
