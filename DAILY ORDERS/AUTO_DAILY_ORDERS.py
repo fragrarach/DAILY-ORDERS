@@ -59,7 +59,7 @@ def format_html(html_path):
 def send_email(email_body, salesman, attachment=None, attachment_name=None):
     from_str = 'noreply@quatroair.com'
     to_list = [salesman]
-    cc_list = ['sanjay.m@quatroair.com', 'david.f@quatroair.com']
+    cc_list = ['sanjay.m@quatroair.com']
     bcc_list = ['jan.z@quatroair.com']
 
     to_str = ', '.join(to_list)
