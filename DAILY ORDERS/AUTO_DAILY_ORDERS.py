@@ -29,7 +29,7 @@ def format_html(html_path):
 
 # TODO : Convert attachments to list or dict to allow for multiple attachments
 # Send formatted email body to defined recipients, include attachment if exists
-def send_email(email_body, salesman, attachment=None, attachment_name=None):
+def send_email(email_body, salesman, attachments=None):
     from_str = 'noreply@quatroair.com'
     to_list = [salesman]
     cc_list = ['sanjay.m@quatroair.com']
@@ -45,12 +45,13 @@ def send_email(email_body, salesman, attachment=None, attachment_name=None):
     msg['Subject'] = "Daily Orders"
     msg.attach(MIMEText(email_body, 'html'))
 
-    if attachment and attachment_name:
-        fp = open(attachment, 'rb')
-        att = MIMEApplication(fp.read(), _subtype="pdf")
-        fp.close()
-        att.add_header('Content-Disposition', 'attachment', filename=attachment_name)
-        msg.attach(att)
+    if attachments:
+        for attachment in attachments:
+            fp = open(attachment['file'], 'rb')
+            att = MIMEApplication(fp.read(), _subtype="pdf")
+            fp.close()
+            att.add_header('Content-Disposition', 'attachment', filename=attachment['name'])
+            msg.attach(att)
 
     s = smtplib.SMTP('aerofil-ca.mail.protection.outlook.com')
     s.starttls()
@@ -66,6 +67,40 @@ def html_generator():
     os.system(f'"{vbs_path}"')
 
 
+def email_body_generator(grouping, salesman, email_body):
+    header_file = f'{parent_dir}\\HTML\\{grouping}.html'
+    html_file = f'\\VBA\\{salesman} {grouping}.html'
+    html_folder = f'\\VBA\\{salesman} {grouping}_files\\'
+    html_folder_path = f'{parent_dir}{html_folder}'
+    html_path = f'{parent_dir}{html_file}'
+
+    if os.path.exists(html_path):
+        with open(header_file) as file:
+            email_body += file.read()
+        format_html(html_path)
+        with open(html_path) as file:
+            email_body += file.read()
+        os.remove(html_path)
+        shutil.rmtree(html_folder_path)
+
+    return email_body
+
+
+# Pass email body to pdfkit to create a PDF, return dict of name/file
+def pdf_generator(email_body):
+    time_stamp = datetime.datetime.now().strftime('%H00-%d-%m-%Y')
+    pdf_name = f'Daily Orders ({time_stamp}).pdf'
+    pdf_file = f'{parent_dir}\\PDF\\{pdf_name}'
+    pdfkit.from_string(email_body, pdf_file, configuration=config)
+    pdf = {'name': pdf_name, 'file': pdf_file}
+
+    return pdf
+
+
+def delete_pdf_file(pdf):
+    os.remove(pdf['file'])
+
+
 # Insert HTML files into email body, clean HTML folders, generate PDFs, send emails
 def email_handler():
     salesmen_list = ['MARK STACHOWSKI', 'GREG PHILLIPS']
@@ -74,36 +109,25 @@ def email_handler():
     for salesman in salesmen_list:
         email_body = ''
         for grouping in grouping_list:
-
-            # TODO : Convert this block to an email body generator function
-            header_file = f'{parent_dir}\\HTML\\{grouping}.html'
-            html_file = f'\\VBA\\{salesman} {grouping}.html'
-            html_folder = f'\\VBA\\{salesman} {grouping}_files\\'
-            html_folder_path = f'{parent_dir}{html_folder}'
-            html_path = f'{parent_dir}{html_file}'
-
-            if os.path.exists(html_path):
-                with open(header_file) as file:
-                    email_body += file.read()
-                format_html(html_path)
-                with open(html_path) as file:
-                    email_body += file.read()
-                os.remove(html_path)
-                shutil.rmtree(html_folder_path)
+            email_body = email_body_generator(grouping, salesman, email_body)
 
         if email_body != '':
-            # TODO : Convert this block into a PDF generator function
-            time_stamp = datetime.datetime.now().strftime('%H00-%d-%m-%Y')
-            pdf_name = f'Daily Orders ({time_stamp}).pdf'
-            pdf_file = f'{parent_dir}\\PDF\\{pdf_name}'
-            pdfkit.from_string(email_body, pdf_file, configuration=config)
+            attachments = []
+            email_pdf = pdf_generator(email_body)
+            attachments.append(email_pdf)
 
             if salesman == 'MARK STACHOWSKI':
-                send_email(email_body, 'mark.s@quatroair.com', pdf_file, pdf_name)
+                if not dev_check():
+                    send_email(email_body, 'mark.s@quatroair.com', attachments)
+                else:
+                    send_email(email_body, 'jan.z@quatroair.com', attachments)
             elif salesman == 'GREG PHILLIPS':
-                send_email(email_body, 'greg.p@quatroair.com', pdf_file, pdf_name)
+                if not dev_check():
+                    send_email(email_body, 'greg.p@quatroair.com', attachments)
+                else:
+                    send_email(email_body, 'jan.z@quatroair.com', attachments)
 
-            os.remove(pdf_file)
+                delete_pdf_file(email_pdf)
         else:
             if datetime.datetime.today().weekday() not in (5, 6):
                 email_body = 'No orders entered for current report time frame.'
