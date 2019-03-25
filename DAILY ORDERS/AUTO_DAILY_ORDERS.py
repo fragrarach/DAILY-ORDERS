@@ -1,41 +1,14 @@
 import smtplib
-import psycopg2.extensions
 import datetime
 import os
 import shutil
 import pdfkit
+from sigm import dev_check, sigm_conn, log_conn
 from os.path import dirname, abspath
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 
-
-# Check whether app should reference dev or prod server/db
-def dev_check():
-    raw_filename = os.path.basename(__file__)
-    removed_extension = raw_filename.split('.')[0]
-    last_word = removed_extension.split('_')[-1]
-    if last_word == 'DEV':
-        return True
-    else:
-        return False
-
-
-# PostgreSQL DB connection configs
-if dev_check():
-    conn_sigm = psycopg2.connect("host='192.168.0.57' dbname='DEV' user='SIGM' port='5493'")
-else:
-    conn_sigm = psycopg2.connect("host='192.168.0.250' dbname='QuatroAir' user='SIGM' port='5493'")
-conn_sigm.set_client_encoding("latin1")
-conn_sigm.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
-
-sigm_query = conn_sigm.cursor()
-
-conn_log = psycopg2.connect("host='192.168.0.250' dbname='LOG' user='SIGM' port='5493'")
-conn_log.set_client_encoding("latin1")
-conn_log.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
-
-log_query = conn_log.cursor()
 
 parent_dir = dirname(abspath(__file__))
 
@@ -168,6 +141,10 @@ def clear_updated():
 
 
 def main():
+    global conn_sigm, sigm_query, conn_log, log_query
+    conn_sigm, sigm_query = sigm_conn()
+    conn_log, log_query = log_conn()
+
     html_generator()
     email_handler()
     if not dev_check():
