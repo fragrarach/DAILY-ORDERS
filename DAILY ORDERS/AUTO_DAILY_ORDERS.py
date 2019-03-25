@@ -27,7 +27,6 @@ def format_html(html_path):
         file.write(file_data)
 
 
-# TODO : Convert attachments to list or dict to allow for multiple attachments
 # Send formatted email body to defined recipients, include attachment if exists
 def send_email(email_body, salesman, attachments=None):
     from_str = 'noreply@quatroair.com'

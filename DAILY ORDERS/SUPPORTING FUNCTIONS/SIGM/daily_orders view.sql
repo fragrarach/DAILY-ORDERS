@@ -25,137 +25,10 @@ CREATE OR REPLACE VIEW daily_orders AS (
         FROM currency
         WHERE c.cli_currency = cur_id
     ) AS cur_name,
-    --TODO : Convert 'orc_type' columns to rows on a view, join 'ord_type' to 'orc_type', replace this CASE statement
-    CASE
-        WHEN
-            oh.ord_type = 1
-        THEN
-            (
-                SELECT TRIM(orc_type1)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 2
-        THEN
-            (
-                SELECT TRIM(orc_type2)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 3
-        THEN
-            (
-                SELECT TRIM(orc_type3)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 4
-        THEN
-            (
-                SELECT TRIM(orc_type4)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 5
-        THEN
-            (
-                SELECT TRIM(orc_type5)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 6
-        THEN
-            (
-                SELECT TRIM(orc_type6)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 7
-        THEN
-            (
-                SELECT TRIM(orc_type7)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 8
-        THEN
-            (
-                SELECT TRIM(orc_type8)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 9
-        THEN
-            (
-                SELECT TRIM(orc_type9)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 10
-        THEN
-            (
-                SELECT TRIM(orc_type10)
-                FROM order_config
-            )
-    END AS ord_type,
+    oc.orc_type,
 
     --Header column 5
-    -- TODO : Store verbose order status in a view, join to 'ord_status', replace this CASE statement
-    CASE
-        WHEN
-            oh.ord_status = 'A'
-        THEN
-            'Complete Shipment'
-
-        WHEN
-            oh.ord_status = 'B'
-        THEN
-            'Partial Shipment'
-
-        WHEN
-            oh.ord_status = 'C'
-        THEN
-            'Cancelled Order'
-
-        WHEN
-            oh.ord_status = 'D'
-        THEN
-            'Pending Shipment'
-
-        WHEN
-            oh.ord_status = 'E'
-        THEN
-            'Quote'
-
-        WHEN
-            oh.ord_status = 'F'
-        THEN
-            'Cancelled Quote'
-
-        WHEN
-            oh.ord_status = 'G'
-        THEN
-            'Waiting for Backorder'
-
-        WHEN
-            oh.ord_status = 'H'
-        THEN
-            'Waiting for Backorder Authorization'
-
-        WHEN
-            oh.ord_status = 'I'
-        THEN
-            'Invoiced'
-    END AS ord_status,
+    os.ord_status,
 
     --Shipping body
 
@@ -455,6 +328,8 @@ CREATE OR REPLACE VIEW daily_orders AS (
     JOIN part_group AS pg ON pg.pgr_id = p.pgr_id
     JOIN client AS c ON c.cli_id = oh.cli_id
     JOIN salesman s ON c.sal_id = s.sal_id
+    JOIN orc_type oc ON oc.orc_type_idx = oh.ord_type
+    JOIN ord_status os ON os.ord_status_idx = oh.ord_status
 
     WHERE (
         oh.ord_date = now()::DATE

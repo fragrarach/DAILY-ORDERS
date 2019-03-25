@@ -25,137 +25,10 @@ CREATE OR REPLACE VIEW daily_orders_pending AS (
         FROM currency
         WHERE c.cli_currency = cur_id
     ) AS cur_name,
-    --TODO : Convert 'orc_type' columns to rows on a view, join 'ord_type' to 'orc_type', replace this CASE statement
-    CASE
-        WHEN
-            oh.ord_type = 1
-        THEN
-            (
-                SELECT TRIM(orc_type1)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 2
-        THEN
-            (
-                SELECT TRIM(orc_type2)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 3
-        THEN
-            (
-                SELECT TRIM(orc_type3)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 4
-        THEN
-            (
-                SELECT TRIM(orc_type4)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 5
-        THEN
-            (
-                SELECT TRIM(orc_type5)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 6
-        THEN
-            (
-                SELECT TRIM(orc_type6)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 7
-        THEN
-            (
-                SELECT TRIM(orc_type7)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 8
-        THEN
-            (
-                SELECT TRIM(orc_type8)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 9
-        THEN
-            (
-                SELECT TRIM(orc_type9)
-                FROM order_config
-            )
-
-        WHEN
-            oh.ord_type = 10
-        THEN
-            (
-                SELECT TRIM(orc_type10)
-                FROM order_config
-            )
-    END AS ord_type,
+    oc.orc_type,
 
     --Header column 5
-    -- TODO : Store verbose order status in a view, join to 'ord_status', replace this CASE statement
-    CASE
-        WHEN
-            oh.ord_status = 'A'
-        THEN
-            'Complete Shipment'
-
-        WHEN
-            oh.ord_status = 'B'
-        THEN
-            'Partial Shipment'
-
-        WHEN
-            oh.ord_status = 'C'
-        THEN
-            'Cancelled Order'
-
-        WHEN
-            oh.ord_status = 'D'
-        THEN
-            'Pending Shipment'
-
-        WHEN
-            oh.ord_status = 'E'
-        THEN
-            'Quote'
-
-        WHEN
-            oh.ord_status = 'F'
-        THEN
-            'Cancelled Quote'
-
-        WHEN
-            oh.ord_status = 'G'
-        THEN
-            'Waiting for Backorder'
-
-        WHEN
-            oh.ord_status = 'H'
-        THEN
-            'Waiting for Backorder Authorization'
-
-        WHEN
-            oh.ord_status = 'I'
-        THEN
-            'Invoiced'
-    END AS ord_status,
+    os.ord_status,
 
     --Shipping body
 
@@ -180,12 +53,12 @@ CREATE OR REPLACE VIEW daily_orders_pending AS (
             oh.inv_cli_id = 0
         THEN
             (
-                SELECT string_agg(TRIM(cgr_desc), ', ') 
-                FROM client_grouping 
+                SELECT string_agg(TRIM(cgr_desc), ', ')
+                FROM client_grouping
                 WHERE cgr_no LIKE '0%'
                 AND cgr_id IN (
-                    SELECT cgr_id 
-                    FROM client_grouping_line 
+                    SELECT cgr_id
+                    FROM client_grouping_line
                     WHERE cli_id = oh.cli_id
                 )
             )
@@ -193,12 +66,12 @@ CREATE OR REPLACE VIEW daily_orders_pending AS (
             oh.inv_cli_id <> 0
         THEN
             (
-                SELECT string_agg(TRIM(cgr_desc), ', ') 
-                FROM client_grouping 
+                SELECT string_agg(TRIM(cgr_desc), ', ')
+                FROM client_grouping
                 WHERE cgr_no LIKE '0%'
                 AND cgr_id IN (
-                    SELECT cgr_id 
-                    FROM client_grouping_line 
+                    SELECT cgr_id
+                    FROM client_grouping_line
                     WHERE cli_id = oh.inv_cli_id
                 )
             )
@@ -208,12 +81,12 @@ CREATE OR REPLACE VIEW daily_orders_pending AS (
             oh.inv_cli_id = 0
         THEN
             (
-                SELECT string_agg(TRIM(cgr_desc), ', ') 
-                FROM client_grouping 
+                SELECT string_agg(TRIM(cgr_desc), ', ')
+                FROM client_grouping
                 WHERE cgr_no LIKE '1%'
                 AND cgr_id IN (
-                    SELECT cgr_id 
-                    FROM client_grouping_line 
+                    SELECT cgr_id
+                    FROM client_grouping_line
                     WHERE cli_id = oh.cli_id
                 )
             )
@@ -221,12 +94,12 @@ CREATE OR REPLACE VIEW daily_orders_pending AS (
             oh.inv_cli_id <> 0
         THEN
             (
-                SELECT string_agg(TRIM(cgr_desc), ', ') 
-                FROM client_grouping 
+                SELECT string_agg(TRIM(cgr_desc), ', ')
+                FROM client_grouping
                 WHERE cgr_no LIKE '1%'
                 AND cgr_id IN (
-                    SELECT cgr_id 
-                    FROM client_grouping_line 
+                    SELECT cgr_id
+                    FROM client_grouping_line
                     WHERE cli_id = oh.inv_cli_id
                 )
             )
@@ -256,11 +129,11 @@ CREATE OR REPLACE VIEW daily_orders_pending AS (
         (
             TRIM(oh.inv_city) || ', ' ||
             (
-                SELECT cc_code_char 
-                FROM vw_client_country 
+                SELECT cc_code_char
+                FROM vw_client_country
                 WHERE cc_code_num IN (
-                    SELECT DISTINCT cli_cntry 
-                    FROM client 
+                    SELECT DISTINCT cli_cntry
+                    FROM client
                     WHERE client.cli_id = oh.inv_cli_id
                 )
             )
@@ -272,22 +145,22 @@ CREATE OR REPLACE VIEW daily_orders_pending AS (
     --Shipping column
     TRIM(c.cli_no) AS del_cli_no,
     (
-        SELECT string_agg(TRIM(cgr_desc), ', ') 
-        FROM client_grouping 
+        SELECT string_agg(TRIM(cgr_desc), ', ')
+        FROM client_grouping
         WHERE cgr_no LIKE '0%'
         AND cgr_id IN (
-            SELECT cgr_id 
-            FROM client_grouping_line 
+            SELECT cgr_id
+            FROM client_grouping_line
             WHERE cli_id = oh.cli_id
         )
     ) AS cli_type,
     (
-        SELECT string_agg(TRIM(cgr_desc), ', ') 
-        FROM client_grouping 
+        SELECT string_agg(TRIM(cgr_desc), ', ')
+        FROM client_grouping
         WHERE cgr_no LIKE '1%'
         AND cgr_id IN (
-            SELECT cgr_id 
-            FROM client_grouping_line 
+            SELECT cgr_id
+            FROM client_grouping_line
             WHERE cli_id = oh.cli_id
         )
     ) AS cli_ind,
@@ -296,11 +169,11 @@ CREATE OR REPLACE VIEW daily_orders_pending AS (
     TRIM(oh.cli_del_addr) AS del_addr,
     TRIM(oh.cli_del_city) || ', ' ||
     (
-        SELECT cc_code_char 
-        FROM vw_client_country 
+        SELECT cc_code_char
+        FROM vw_client_country
         WHERE cc_code_num IN (
-            SELECT DISTINCT cli_cntry 
-            FROM client 
+            SELECT DISTINCT cli_cntry
+            FROM client
             WHERE client.cli_id = oh.cli_id
         )
     ) AS del_city,
@@ -336,31 +209,31 @@ CREATE OR REPLACE VIEW daily_orders_pending AS (
     ),
     ol.orl_price::NUMERIC(17,2),
     CASE
-        WHEN 
+        WHEN
             ol.orl_price = (
-                SELECT prt_price 
-                FROM client_contracts 
-                WHERE c.cli_no = client_contracts.cli_no 
+                SELECT prt_price
+                FROM client_contracts
+                WHERE c.cli_no = client_contracts.cli_no
                 AND p.prt_no = client_contracts.prt_no LIMIT 1
-            ) 
-        THEN 
+            )
+        THEN
             'Contract'
-            
-        WHEN 
+
+        WHEN
             ol.orl_price = (
-                SELECT ppr_price 
-                FROM part_price 
-                WHERE ol.prt_id = prt_id 
+                SELECT ppr_price
+                FROM part_price
+                WHERE ol.prt_id = prt_id
                 AND c.cli_price_level = ppr_sort_idx
-            ) 
-        THEN 
+            )
+        THEN
             'List'
 
-        ELSE 
+        ELSE
             'Manual'
     END AS price_type,
     (c.cli_dscnt / 100)::NUMERIC(17,2) AS cli_dscnt,
-    CASE 
+    CASE
         WHEN
             (
                 SELECT (prt_dscnt / 100)
@@ -447,13 +320,17 @@ CREATE OR REPLACE VIEW daily_orders_pending AS (
     oh.ord_ttax1_amnt,
     oh.ord_ttax2_amnt
     --TODO : Remove sub total and grand total statements from VBA, place them here
-    
+
+
     FROM order_header AS oh
     JOIN order_line AS ol ON ol.ord_id = oh.ord_id
     JOIN part AS p ON p.prt_id = ol.prt_id
     JOIN part_group AS pg ON pg.pgr_id = p.pgr_id
     JOIN client AS c ON c.cli_id = oh.cli_id
     JOIN salesman s ON c.sal_id = s.sal_id
+    JOIN orc_type oc ON oc.orc_type_idx = oh.ord_type
+    JOIN ord_status os ON os.ord_status_idx = oh.ord_status
+
     WHERE (oh.ord_date = now()::DATE OR oh.ord_date = now()::DATE - 1)
     AND orl_kitmaster_id = 0
     AND oh.ord_no not in (SELECT * from dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM', 'select * from daily_orders') AS t1(test INTEGER))
