@@ -337,9 +337,10 @@ CREATE OR REPLACE VIEW daily_orders AS (
     )
     AND orl_kitmaster_id = 0
     AND oh.ord_no NOT IN (
-            SELECT *
-            FROM dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM', 'SELECT * FROM daily_orders')
-            AS temp_table(temp_ord_no INTEGER)
+        SELECT *
+        FROM dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
+        'SELECT * FROM daily_orders')
+        AS temp_table(ord_no INTEGER)
     )
     AND ol.prt_id NOT IN (
         SELECT prt_id
@@ -355,5 +356,17 @@ CREATE OR REPLACE VIEW daily_orders AS (
         )
     )
     AND oh.ord_status NOT IN ('D', 'E', 'F')
+    OR (
+        oh.ord_no IN (
+            SELECT *
+            FROM dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
+            'SELECT ord_no FROM daily_orders_updated WHERE change_type = \'PACKING SLIP\'')
+            AS temp_table(temp_ord_no INTEGER)
+        )
+        AND (
+            oh.ord_date = now()::DATE
+            OR oh.ord_date = now()::DATE - 1
+        )
+    )
     ORDER BY sal_name, ord_no, orl_sort_idx
 )
