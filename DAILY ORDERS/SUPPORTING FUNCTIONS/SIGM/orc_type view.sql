@@ -1,4 +1,3 @@
-DROP VIEW IF EXISTS public.orc_type;
 CREATE OR REPLACE VIEW orc_type AS (
     SELECT
             1 as orc_type_idx,

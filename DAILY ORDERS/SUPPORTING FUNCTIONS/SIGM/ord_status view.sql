@@ -1,4 +1,3 @@
-DROP VIEW IF EXISTS public.ord_status;
 CREATE OR REPLACE VIEW ord_status AS (
     SELECT
             'A' as ord_status_idx,
