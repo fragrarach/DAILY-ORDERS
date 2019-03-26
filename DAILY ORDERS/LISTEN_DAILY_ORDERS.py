@@ -73,6 +73,14 @@ def removed_part(change_type, ord_no, orl_id, orl_price, prt_no, orl_quantity, p
     log_query.execute(sql_exp)
 
 
+def printed_packing_slip(change_type, ord_no):
+    sql_exp = f'INSERT INTO daily_orders_updated ' \
+              f'(change_type, ord_no) ' \
+              f'VALUES (\'{change_type}\', {ord_no})'
+    print(sql_exp)
+    log_query.execute(sql_exp)
+
+
 def main():
     channel = 'daily_orders'
     global conn_sigm, sigm_query, conn_log, log_query
@@ -115,6 +123,9 @@ def main():
                 elif change_type == 'REMOVED PART':
                     orl_id, orl_price, prt_no, orl_quantity, prt_dscnt = removed_part_payload_handler(raw_payload)
                     removed_part(change_type, ord_no, orl_id, orl_price, prt_no, orl_quantity, prt_dscnt)
+
+                elif change_type == 'PACKING SLIP':
+                    printed_packing_slip(change_type, ord_no)
 
 
 main()
