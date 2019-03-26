@@ -3,7 +3,9 @@ CREATE OR REPLACE FUNCTION daily_orders_notify()
 $BODY$
 BEGIN
 
-IF tg_table_name = 'order_header' THEN
+IF
+    tg_table_name = 'order_header'
+THEN
 
     IF 
         tg_op = 'UPDATE' 
@@ -27,7 +29,9 @@ IF tg_table_name = 'order_header' THEN
         END IF;
     END IF;
     
-ELSIF tg_table_name = 'order_line' THEN
+ELSIF
+    tg_table_name = 'order_line'
+THEN
 
     IF 
         tg_op = 'UPDATE' 
@@ -44,7 +48,6 @@ ELSIF tg_table_name = 'order_line' THEN
             )
         )
     THEN
-    
         IF 
             OLD.prt_no = ''
             AND NEW.prt_no <> ''
@@ -69,7 +72,7 @@ ELSIF tg_table_name = 'order_line' THEN
             );
         END IF;
         
-    ELSIF 
+    ELSIF
         tg_op = 'DELETE'
         AND (
             EXISTS (
@@ -97,6 +100,16 @@ ELSIF tg_table_name = 'order_line' THEN
             );
         END IF;
     END IF;
+
+ELSIF
+    tg_table_name = 'invoicing'
+THEN
+
+    PERFORM pg_notify(
+        'daily_orders', ''
+        || 'PACKING SLIP' || ', '
+        || NEW.ord_no || ''
+    );
 END IF;
 
 RETURN NULL;
