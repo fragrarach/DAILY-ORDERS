@@ -100,6 +100,16 @@ THEN
             );
         END IF;
     END IF;
+
+ELSIF
+    tg_table_name = 'invoicing'
+THEN
+
+    PERFORM pg_notify(
+        'daily_orders', ''
+        || 'PACKING SLIP' || ', '
+        || NEW.ord_no || ''
+    );
 END IF;
 
 RETURN NULL;

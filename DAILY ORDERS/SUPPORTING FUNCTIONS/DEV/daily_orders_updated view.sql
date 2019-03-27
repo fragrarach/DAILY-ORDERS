@@ -1,5 +1,5 @@
-DROP VIEW IF EXISTS public.daily_orders;
-CREATE OR REPLACE VIEW daily_orders AS (
+DROP VIEW IF EXISTS daily_orders_updated;
+CREATE OR REPLACE VIEW daily_orders_updated AS (
     SELECT
     --Line reference
     ol.orl_id,
@@ -29,6 +29,38 @@ CREATE OR REPLACE VIEW daily_orders AS (
 
     --Header column 5
     os.ord_status,
+    CASE
+        WHEN
+            EXISTS (
+                SELECT orl_id
+                FROM invoicing_line
+                WHERE ol.orl_id = orl_id
+                AND inv_no = 0
+            )
+            AND oh.ord_ship_amnt IN (0, -1)
+        THEN
+            'Packing Slip Printed, Shipping Costs Missing'
+        WHEN
+            EXISTS (
+                SELECT orl_id
+                FROM invoicing_line
+                WHERE ol.orl_id = orl_id
+                AND inv_no = 0
+            )
+            AND oh.ord_ship_amnt NOT IN (0, -1)
+        THEN
+            'Packing Slip Printed, Shipping Costs Added'
+        WHEN
+            NOT EXISTS (
+                SELECT orl_id
+                FROM invoicing_line
+                WHERE ol.orl_id = orl_id
+            )
+        THEN
+            'Packing Slip Not Printed'
+        ELSE
+            ''
+    END AS shipping_cost,
 
     --Shipping body
 
@@ -53,12 +85,12 @@ CREATE OR REPLACE VIEW daily_orders AS (
             oh.inv_cli_id = 0
         THEN
             (
-                SELECT string_agg(TRIM(cgr_desc), ', ') 
-                FROM client_grouping 
+                SELECT string_agg(TRIM(cgr_desc), ', ')
+                FROM client_grouping
                 WHERE cgr_no LIKE '0%'
                 AND cgr_id IN (
-                    SELECT cgr_id 
-                    FROM client_grouping_line 
+                    SELECT cgr_id
+                    FROM client_grouping_line
                     WHERE cli_id = oh.cli_id
                 )
             )
@@ -66,12 +98,12 @@ CREATE OR REPLACE VIEW daily_orders AS (
             oh.inv_cli_id <> 0
         THEN
             (
-                SELECT string_agg(TRIM(cgr_desc), ', ') 
-                FROM client_grouping 
+                SELECT string_agg(TRIM(cgr_desc), ', ')
+                FROM client_grouping
                 WHERE cgr_no LIKE '0%'
                 AND cgr_id IN (
-                    SELECT cgr_id 
-                    FROM client_grouping_line 
+                    SELECT cgr_id
+                    FROM client_grouping_line
                     WHERE cli_id = oh.inv_cli_id
                 )
             )
@@ -81,12 +113,12 @@ CREATE OR REPLACE VIEW daily_orders AS (
             oh.inv_cli_id = 0
         THEN
             (
-                SELECT string_agg(TRIM(cgr_desc), ', ') 
-                FROM client_grouping 
+                SELECT string_agg(TRIM(cgr_desc), ', ')
+                FROM client_grouping
                 WHERE cgr_no LIKE '1%'
                 AND cgr_id IN (
-                    SELECT cgr_id 
-                    FROM client_grouping_line 
+                    SELECT cgr_id
+                    FROM client_grouping_line
                     WHERE cli_id = oh.cli_id
                 )
             )
@@ -94,12 +126,12 @@ CREATE OR REPLACE VIEW daily_orders AS (
             oh.inv_cli_id <> 0
         THEN
             (
-                SELECT string_agg(TRIM(cgr_desc), ', ') 
-                FROM client_grouping 
+                SELECT string_agg(TRIM(cgr_desc), ', ')
+                FROM client_grouping
                 WHERE cgr_no LIKE '1%'
                 AND cgr_id IN (
-                    SELECT cgr_id 
-                    FROM client_grouping_line 
+                    SELECT cgr_id
+                    FROM client_grouping_line
                     WHERE cli_id = oh.inv_cli_id
                 )
             )
@@ -129,11 +161,11 @@ CREATE OR REPLACE VIEW daily_orders AS (
         (
             TRIM(oh.inv_city) || ', ' ||
             (
-                SELECT cc_code_char 
-                FROM vw_client_country 
+                SELECT cc_code_char
+                FROM vw_client_country
                 WHERE cc_code_num IN (
-                    SELECT DISTINCT cli_cntry 
-                    FROM client 
+                    SELECT DISTINCT cli_cntry
+                    FROM client
                     WHERE client.cli_id = oh.inv_cli_id
                 )
             )
@@ -145,22 +177,22 @@ CREATE OR REPLACE VIEW daily_orders AS (
     --Shipping column
     TRIM(c.cli_no) AS del_cli_no,
     (
-        SELECT string_agg(TRIM(cgr_desc), ', ') 
-        FROM client_grouping 
+        SELECT string_agg(TRIM(cgr_desc), ', ')
+        FROM client_grouping
         WHERE cgr_no LIKE '0%'
         AND cgr_id IN (
-            SELECT cgr_id 
-            FROM client_grouping_line 
+            SELECT cgr_id
+            FROM client_grouping_line
             WHERE cli_id = oh.cli_id
         )
     ) AS cli_type,
     (
-        SELECT string_agg(TRIM(cgr_desc), ', ') 
-        FROM client_grouping 
+        SELECT string_agg(TRIM(cgr_desc), ', ')
+        FROM client_grouping
         WHERE cgr_no LIKE '1%'
         AND cgr_id IN (
-            SELECT cgr_id 
-            FROM client_grouping_line 
+            SELECT cgr_id
+            FROM client_grouping_line
             WHERE cli_id = oh.cli_id
         )
     ) AS cli_ind,
@@ -169,11 +201,11 @@ CREATE OR REPLACE VIEW daily_orders AS (
     TRIM(oh.cli_del_addr) AS del_addr,
     TRIM(oh.cli_del_city) || ', ' ||
     (
-        SELECT cc_code_char 
-        FROM vw_client_country 
+        SELECT cc_code_char
+        FROM vw_client_country
         WHERE cc_code_num IN (
-            SELECT DISTINCT cli_cntry 
-            FROM client 
+            SELECT DISTINCT cli_cntry
+            FROM client
             WHERE client.cli_id = oh.cli_id
         )
     ) AS del_city,
@@ -209,31 +241,31 @@ CREATE OR REPLACE VIEW daily_orders AS (
     ),
     ol.orl_price::NUMERIC(17,2),
     CASE
-        WHEN 
+        WHEN
             ol.orl_price = (
-                SELECT prt_price 
-                FROM client_contracts 
-                WHERE c.cli_no = client_contracts.cli_no 
+                SELECT prt_price
+                FROM client_contracts
+                WHERE c.cli_no = client_contracts.cli_no
                 AND p.prt_no = client_contracts.prt_no LIMIT 1
-            ) 
-        THEN 
+            )
+        THEN
             'Contract'
-            
-        WHEN 
+
+        WHEN
             ol.orl_price = (
-                SELECT ppr_price 
-                FROM part_price 
-                WHERE ol.prt_id = prt_id 
+                SELECT ppr_price
+                FROM part_price
+                WHERE ol.prt_id = prt_id
                 AND c.cli_price_level = ppr_sort_idx
-            ) 
-        THEN 
+            )
+        THEN
             'List'
 
-        ELSE 
+        ELSE
             'Manual'
     END AS price_type,
     (c.cli_dscnt / 100)::NUMERIC(17,2) AS cli_dscnt,
-    CASE 
+    CASE
         WHEN
             (
                 SELECT (prt_dscnt / 100)
@@ -321,7 +353,7 @@ CREATE OR REPLACE VIEW daily_orders AS (
     oh.ord_ttax2_amnt
     --TODO : Remove sub total and grand total statements from VBA, place them here
 
-    
+
     FROM order_header AS oh
     JOIN order_line AS ol ON ol.ord_id = oh.ord_id
     JOIN part AS p ON p.prt_id = ol.prt_id
@@ -330,31 +362,38 @@ CREATE OR REPLACE VIEW daily_orders AS (
     JOIN salesman s ON c.sal_id = s.sal_id
     JOIN orc_type oc ON oc.orc_type_idx = oh.ord_type
     JOIN ord_status os ON os.ord_status_idx = oh.ord_status
-
-    WHERE (
-        oh.ord_date = now()::DATE
-        OR oh.ord_date = now()::DATE - 1
-    )
-    AND orl_kitmaster_id = 0
-    AND oh.ord_no NOT IN (
+    
+    WHERE orl_kitmaster_id = 0
+    and oh.ord_no in (
         SELECT *
-        FROM dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
-        'SELECT * FROM daily_orders')
-        AS temp_table(ord_no INTEGER)
+        from dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
+        'SELECT ord_no FROM daily_orders_updated') as t1(ord_no integer)
     )
     AND ol.prt_id NOT IN (
         SELECT prt_id
         FROM order_line
         WHERE prt_id IN (
             SELECT prt_id 
-            FROM part_kit
+            from part_kit
             WHERE pkt_master_prt_id IN (
                 SELECT prt_id 
                 FROM order_line 
                 WHERE order_line.ord_no = oh.ord_no
             )
         )
-    )
+    )       
     AND oh.ord_status NOT IN ('D', 'E', 'F')
+    AND NOT (
+        oh.ord_no IN (
+            SELECT *
+            FROM dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
+            'SELECT ord_no FROM daily_orders_updated WHERE change_type = \'PACKING SLIP\'')
+            AS temp_table(ord_no INTEGER)
+        )
+        AND (
+            oh.ord_date = now()::DATE
+            OR oh.ord_date = now()::DATE - 1
+        )
+    )
     ORDER BY sal_name, ord_no, orl_sort_idx
 )

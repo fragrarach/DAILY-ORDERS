@@ -351,17 +351,5 @@ CREATE OR REPLACE VIEW daily_orders_updated AS (
         )
     )       
     AND oh.ord_status NOT IN ('D', 'E', 'F')
-    AND NOT (
-        oh.ord_no IN (
-            SELECT *
-            FROM dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
-            'SELECT ord_no FROM daily_orders_updated WHERE change_type = \'PACKING SLIP\'')
-            AS temp_table(ord_no INTEGER)
-        )
-        AND (
-            oh.ord_date = now()::DATE
-            OR oh.ord_date = now()::DATE - 1
-        )
-    )
     ORDER BY sal_name, ord_no, orl_sort_idx
 )

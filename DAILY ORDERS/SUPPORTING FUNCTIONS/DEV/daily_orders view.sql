@@ -29,6 +29,38 @@ CREATE OR REPLACE VIEW daily_orders AS (
 
     --Header column 5
     os.ord_status,
+    CASE
+        WHEN
+            EXISTS (
+                SELECT orl_id
+                FROM invoicing_line
+                WHERE ol.orl_id = orl_id
+                AND inv_no = 0
+            )
+            AND oh.ord_ship_amnt IN (0, -1)
+        THEN
+            'Packing Slip Printed, Shipping Costs Missing'
+        WHEN
+            EXISTS (
+                SELECT orl_id
+                FROM invoicing_line
+                WHERE ol.orl_id = orl_id
+                AND inv_no = 0
+            )
+            AND oh.ord_ship_amnt NOT IN (0, -1)
+        THEN
+            'Packing Slip Printed, Shipping Costs Added'
+        WHEN
+            NOT EXISTS (
+                SELECT orl_id
+                FROM invoicing_line
+                WHERE ol.orl_id = orl_id
+            )
+        THEN
+            'Packing Slip Not Printed'
+        ELSE
+            ''
+    END AS shipping_cost,
 
     --Shipping body
 
@@ -356,5 +388,17 @@ CREATE OR REPLACE VIEW daily_orders AS (
         )
     )
     AND oh.ord_status NOT IN ('D', 'E', 'F')
+    OR (
+        oh.ord_no IN (
+            SELECT *
+            FROM dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
+            'SELECT ord_no FROM daily_orders_updated WHERE change_type = \'PACKING SLIP\'')
+            AS temp_table(temp_ord_no INTEGER)
+        )
+        AND (
+            oh.ord_date = now()::DATE
+            OR oh.ord_date = now()::DATE - 1
+        )
+    )
     ORDER BY sal_name, ord_no, orl_sort_idx
 )
