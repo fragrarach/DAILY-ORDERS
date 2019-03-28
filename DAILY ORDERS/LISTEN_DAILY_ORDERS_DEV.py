@@ -1,5 +1,4 @@
-import psycopg2.extensions
-from sigm import sigm_conn, log_conn, add_sql_files
+from sigm import *
 
 
 # PostgreSQL DB connection configs
@@ -43,7 +42,7 @@ def converted_quote(change_type, ord_no):
               f'(change_type, ord_no) ' \
               f'VALUES (\'{change_type}\', {ord_no})'
     print(sql_exp)
-    log_query.execute(sql_exp)
+    log_db_cursor.execute(sql_exp)
 
 
 # Insert added part data into 'daily_orders_updated' table
@@ -52,7 +51,7 @@ def added_part(change_type, ord_no, orl_id):
               f'(change_type, ord_no, orl_id) ' \
               f'VALUES (\'{change_type}\', {ord_no}, {orl_id})'
     print(sql_exp)
-    log_query.execute(sql_exp)
+    log_db_cursor.execute(sql_exp)
 
 
 # Insert price changed data into 'daily_orders_updated' table
@@ -61,7 +60,7 @@ def price_changed(change_type, ord_no, orl_id, orl_price):
               f'(change_type, ord_no, orl_id, orl_price) ' \
               f'VALUES (\'{change_type}\', {ord_no}, {orl_id}, {orl_price})'
     print(sql_exp)
-    log_query.execute(sql_exp)
+    log_db_cursor.execute(sql_exp)
 
 
 # Insert removed part data into 'daily_orders_updated' table
@@ -70,7 +69,7 @@ def removed_part(change_type, ord_no, orl_id, orl_price, prt_no, orl_quantity, p
               f'(change_type, ord_no, orl_id, orl_price, prt_no, orl_quantity, prt_dscnt) ' \
               f'VALUES (\'{change_type}\', {ord_no}, {orl_id}, {orl_price}, \'{prt_no}\', {orl_quantity}, {prt_dscnt})'
     print(sql_exp)
-    log_query.execute(sql_exp)
+    log_db_cursor.execute(sql_exp)
 
 
 def printed_packing_slip(change_type, ord_no):
@@ -78,33 +77,33 @@ def printed_packing_slip(change_type, ord_no):
               f'(change_type, ord_no) ' \
               f'VALUES (\'{change_type}\', {ord_no})'
     print(sql_exp)
-    log_query.execute(sql_exp)
+    log_db_cursor.execute(sql_exp)
 
 
 def main():
     channel = 'daily_orders'
-    global conn_sigm, sigm_query, conn_log, log_query
-    conn_sigm, sigm_query = sigm_conn(channel)
-    conn_log, log_query = log_conn()
+    global sigm_connection, sigm_db_cursor, log_connection, log_db_cursor
+    sigm_connection, sigm_db_cursor = sigm_connect(channel)
+    log_connection, log_db_cursor = log_connect()
 
     add_sql_files()
 
     while 1:
         try:
-            conn_sigm.poll()
+            sigm_connection.poll()
         except:
             print('Database cannot be accessed, PostgreSQL service probably rebooting')
             try:
-                conn_sigm.close()
-                conn_sigm, sigm_query = sigm_conn(channel)
-                conn_log.close()
-                conn_log, log_query = log_conn()
+                sigm_connection.close()
+                sigm_connection, sigm_db_cursor = sigm_connect(channel)
+                log_connection.close()
+                log_connection, log_db_cursor = log_connect()
             except:
                 pass
         else:
-            conn_sigm.commit()
-            while conn_sigm.notifies:
-                notify = conn_sigm.notifies.pop()
+            sigm_connection.commit()
+            while sigm_connection.notifies:
+                notify = sigm_connection.notifies.pop()
                 raw_payload = notify.payload
 
                 change_type, ord_no = base_payload_handler(raw_payload)

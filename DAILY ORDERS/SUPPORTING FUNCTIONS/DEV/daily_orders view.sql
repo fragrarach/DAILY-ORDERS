@@ -232,13 +232,6 @@ CREATE OR REPLACE VIEW daily_orders AS (
         WHERE c.cli_no = client_contracts.cli_no
         AND p.prt_no = client_contracts.prt_no LIMIT 1
     )::NUMERIC(17,2) AS con_price,
-    -- TODO : Unused statement/column, remove
-    (
-        SELECT ppr_price
-        FROM part_price
-        WHERE ol.prt_id = prt_id
-        AND c.cli_price_level = ppr_sort_idx
-    ),
     ol.orl_price::NUMERIC(17,2),
     CASE
         WHEN 

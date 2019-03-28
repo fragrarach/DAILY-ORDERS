@@ -1,9 +1,8 @@
 import smtplib
 import datetime
-import os
 import shutil
 import pdfkit
-from sigm import dev_check, sigm_conn, log_conn
+from sigm import *
 from os.path import dirname, abspath
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -141,33 +140,33 @@ def email_handler():
 # Clear log of orders that are already sent, add orders to log that have just been sent
 def exclusion_log():
     sql_exp = f'DELETE FROM daily_orders'
-    log_query.execute(sql_exp)
+    log_db_cursor.execute(sql_exp)
 
     grouping_view_list = ['', '_quotes', '_pending']
 
     for grouping in grouping_view_list:
         sql_exp = f'SELECT ord_no FROM daily_orders{grouping}'
-        sigm_query.execute(sql_exp)
-        result_set = sigm_query.fetchall()
+        sigm_db_cursor.execute(sql_exp)
+        result_set = sigm_db_cursor.fetchall()
 
         for row in result_set:
             for cell in row:
                 ord_no = cell
                 sql_exp = f'INSERT INTO daily_orders (ord_no) VALUES ({ord_no})'
-                log_query.execute(sql_exp)
+                log_db_cursor.execute(sql_exp)
 
 
 # TODO : Add a 'sent' boolean column to daily_orders_updated log table instead of deleting sent updated orders
 # Clear log of updated orders
 def clear_updated():
     sql_exp = f'DELETE FROM daily_orders_updated'
-    log_query.execute(sql_exp)
+    log_db_cursor.execute(sql_exp)
 
 
 def main():
-    global conn_sigm, sigm_query, conn_log, log_query
-    conn_sigm, sigm_query = sigm_conn()
-    conn_log, log_query = log_conn()
+    global sigm_connection, sigm_db_cursor, log_connection, log_db_cursor
+    sigm_connection, sigm_db_cursor = sigm_connect()
+    log_connection, log_db_cursor = log_connect()
 
     html_generator()
     email_handler()
