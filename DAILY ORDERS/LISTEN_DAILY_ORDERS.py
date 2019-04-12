@@ -37,7 +37,7 @@ def removed_part_payload_handler(payload):
 
 
 # Insert converted quote data into 'daily_orders_updated' table
-def converted_quote(change_type, ord_no):
+def converted_order(change_type, ord_no):
     sql_exp = f'INSERT INTO daily_orders_updated ' \
               f'(change_type, ord_no) ' \
               f'VALUES (\'{change_type}\', {ord_no})'
@@ -72,6 +72,14 @@ def removed_part(change_type, ord_no, orl_id, orl_price, prt_no, orl_quantity, p
     log_db_cursor.execute(sql_exp)
 
 
+def printed_packing_slip(change_type, ord_no):
+    sql_exp = f'INSERT INTO daily_orders_updated ' \
+              f'(change_type, ord_no) ' \
+              f'VALUES (\'{change_type}\', {ord_no})'
+    print(sql_exp)
+    log_db_cursor.execute(sql_exp)
+
+
 def main():
     channel = 'daily_orders'
     global sigm_connection, sigm_db_cursor, log_connection, log_db_cursor
@@ -100,8 +108,8 @@ def main():
 
                 change_type, ord_no = base_payload_handler(raw_payload)
 
-                if change_type == 'CONVERTED QUOTE':
-                    converted_quote(change_type, ord_no)
+                if change_type in ('CONVERTED QUOTE', 'CONVERTED PENDING'):
+                    converted_order(change_type, ord_no)
 
                 elif change_type == 'ADDED PART':
                     orl_id = added_part_payload_handler(raw_payload)
@@ -114,6 +122,9 @@ def main():
                 elif change_type == 'REMOVED PART':
                     orl_id, orl_price, prt_no, orl_quantity, prt_dscnt = removed_part_payload_handler(raw_payload)
                     removed_part(change_type, ord_no, orl_id, orl_price, prt_no, orl_quantity, prt_dscnt)
+
+                elif change_type == 'PACKING SLIP':
+                    printed_packing_slip(change_type, ord_no)
 
 
 main()

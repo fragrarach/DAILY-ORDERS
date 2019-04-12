@@ -26,6 +26,15 @@ THEN
                 || 'CONVERTED QUOTE' || ', '
                 || NEW.ord_no || ''
             );
+        ELSIF
+            OLD.ord_status = 'D'
+            AND NEW.ord_status IN ('A', 'B')
+        THEN
+            PERFORM pg_notify(
+                'daily_orders', ''
+                || 'CONVERTED PENDING' || ', '
+                || NEW.ord_no || ''
+            );
         END IF;
     END IF;
     

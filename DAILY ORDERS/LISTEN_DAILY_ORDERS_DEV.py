@@ -37,7 +37,7 @@ def removed_part_payload_handler(payload):
 
 
 # Insert converted quote data into 'daily_orders_updated' table
-def converted_quote(change_type, ord_no):
+def converted_order(change_type, ord_no):
     sql_exp = f'INSERT INTO daily_orders_updated ' \
               f'(change_type, ord_no) ' \
               f'VALUES (\'{change_type}\', {ord_no})'
@@ -108,8 +108,8 @@ def main():
 
                 change_type, ord_no = base_payload_handler(raw_payload)
 
-                if change_type == 'CONVERTED QUOTE':
-                    converted_quote(change_type, ord_no)
+                if change_type in ('CONVERTED QUOTE', 'CONVERTED PENDING'):
+                    converted_order(change_type, ord_no)
 
                 elif change_type == 'ADDED PART':
                     orl_id = added_part_payload_handler(raw_payload)
