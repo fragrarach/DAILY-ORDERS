@@ -190,7 +190,16 @@ CREATE OR REPLACE VIEW daily_orders_quotes AS (
 
     --Order line row
     ol.orl_sort_idx,
-    ol.orl_active,
+    CASE
+        WHEN
+            ol.orl_active = 'A'
+        THEN
+            ''
+        WHEN
+            ol.orl_active = 'I'
+        THEN
+            'Invoiced'
+     END AS orl_active,
     ol.prt_no,
     ol.prt_desc,
     ol.orl_quantity,
