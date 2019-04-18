@@ -190,6 +190,7 @@ CREATE OR REPLACE VIEW daily_orders_updated_quotes AS (
 
     --Order line row
     ol.orl_sort_idx,
+    ol.orl_active,
     ol.prt_no,
     ol.prt_desc,
     ol.orl_quantity,
