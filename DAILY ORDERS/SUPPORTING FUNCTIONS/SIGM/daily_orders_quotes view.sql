@@ -192,13 +192,13 @@ CREATE OR REPLACE VIEW daily_orders_quotes AS (
     ol.orl_sort_idx,
     CASE
         WHEN
-            ol.orl_active = 'A'
-        THEN
-            ''
-        WHEN
-            ol.orl_active = 'I'
+            ol.orl_quantity > 0
+            AND ol.orl_active = 'I'
         THEN
             'Invoiced'
+
+        ELSE
+            ''
      END AS orl_active,
     ol.prt_no,
     ol.prt_desc,

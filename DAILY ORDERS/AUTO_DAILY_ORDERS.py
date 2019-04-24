@@ -27,7 +27,7 @@ def format_html(html_path):
 
 
 # Send formatted email body to defined recipients, include attachment if exists
-def send_email(email_body, salesman, attachments=None):
+def send_email(email_body, salesman, attachments=None, subject=None):
     from_str = 'noreply@quatroair.com'
     to_list = [salesman]
     cc_list = ['sanjay.m@quatroair.com']
@@ -36,11 +36,13 @@ def send_email(email_body, salesman, attachments=None):
     to_str = ', '.join(to_list)
     cc_str = ', '.join(cc_list)
 
+    subject_str = subject if subject else "Daily Orders"
+
     msg = MIMEMultipart('alternative')
     msg['From'] = from_str
     msg['To'] = to_str
     msg['CC'] = cc_str
-    msg['Subject'] = "Daily Orders"
+    msg['Subject'] = subject_str
     msg.attach(MIMEText(email_body, 'html'))
 
     if attachments:
@@ -84,9 +86,13 @@ def email_body_generator(grouping, salesman, email_body):
     return email_body
 
 
+def time_stamp_generator():
+    return datetime.datetime.now().strftime('%H00-%d-%m-%Y')
+
+
 # Pass email body to pdfkit to create a PDF, return dict of name/file
 def pdf_generator(email_body):
-    time_stamp = datetime.datetime.now().strftime('%H00-%d-%m-%Y')
+    time_stamp = time_stamp_generator()
     pdf_name = f'Daily Orders ({time_stamp}).pdf'
     pdf_file = f'{parent_dir}\\PDF\\{pdf_name}'
     pdfkit.from_string(email_body, pdf_file, configuration=config)
@@ -114,16 +120,19 @@ def email_handler():
             email_pdf = pdf_generator(email_body)
             attachments.append(email_pdf)
 
+            time_stamp = time_stamp_generator()
+            subject = f'{salesman} {time_stamp}'
+
             if salesman == 'MARK STACHOWSKI':
                 if not dev_check():
-                    send_email(email_body, 'mark.s@quatroair.com', attachments)
+                    send_email(email_body, 'mark.s@quatroair.com', attachments, subject=subject)
                 else:
-                    send_email(email_body, 'jan.z@quatroair.com', attachments)
+                    send_email(email_body, 'jan.z@quatroair.com', attachments, subject=subject)
             elif salesman == 'GREG PHILLIPS':
                 if not dev_check():
-                    send_email(email_body, 'greg.p@quatroair.com', attachments)
+                    send_email(email_body, 'greg.p@quatroair.com', attachments, subject=subject)
                 else:
-                    send_email(email_body, 'jan.z@quatroair.com', attachments)
+                    send_email(email_body, 'jan.z@quatroair.com', attachments, subject=subject)
 
                 delete_pdf_file(email_pdf)
         else:
