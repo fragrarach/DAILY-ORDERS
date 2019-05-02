@@ -336,10 +336,10 @@ CREATE OR REPLACE VIEW daily_orders_updated AS (
     JOIN ord_status os ON os.ord_status_idx = oh.ord_status
     
     WHERE orl_kitmaster_id = 0
-    and oh.ord_no in (
+    AND oh.ord_no in (
         SELECT *
         from dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
-        'SELECT ord_no FROM daily_orders_updated') as t1(ord_no integer)
+        'SELECT ord_no FROM daily_orders_updated WHERE change_type <> ''CONVERTED PENDING''') as t1(ord_no integer)
     )
     AND ol.prt_id NOT IN (
         SELECT prt_id
