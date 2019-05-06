@@ -14,7 +14,7 @@ def start_timer():
 
 def set_timer():
     now = datetime.datetime.today()
-    hour = 12 if now.hour < 12 else 4
+    hour = 12 if now.hour < 12 else 16
     minute = 0 if now.hour < 12 else 45
     then = now.replace(day=now.day, hour=hour, minute=minute, second=0, microsecond=0)
 
