@@ -25,42 +25,10 @@ CREATE OR REPLACE VIEW daily_orders_updated AS (
         FROM currency
         WHERE c.cli_currency = cur_id
     ) AS cur_name,
-    oc.orc_type,
+    oc.ord_type,
 
     --Header column 5
     os.ord_status,
-    CASE
-        WHEN
-            EXISTS (
-                SELECT orl_id
-                FROM invoicing_line
-                WHERE ol.orl_id = orl_id
-                AND inv_no = 0
-            )
-            AND oh.ord_ship_amnt IN (0, -1)
-        THEN
-            'Packing Slip Printed, Shipping Costs Missing'
-        WHEN
-            EXISTS (
-                SELECT orl_id
-                FROM invoicing_line
-                WHERE ol.orl_id = orl_id
-                AND inv_no = 0
-            )
-            AND oh.ord_ship_amnt NOT IN (0, -1)
-        THEN
-            'Packing Slip Printed, Shipping Costs Added'
-        WHEN
-            NOT EXISTS (
-                SELECT orl_id
-                FROM invoicing_line
-                WHERE ol.orl_id = orl_id
-            )
-        THEN
-            'Packing Slip Not Printed'
-        ELSE
-            ''
-    END AS shipping_cost,
 
     --Shipping body
 
@@ -221,6 +189,17 @@ CREATE OR REPLACE VIEW daily_orders_updated AS (
     --Order line body
 
     --Order line row
+    ol.orl_sort_idx,
+    CASE
+        WHEN
+            ol.orl_quantity > 0
+            AND ol.orl_active = 'I'
+        THEN
+            'Invoiced'
+
+        ELSE
+            ''
+     END AS orl_active,
     ol.prt_no,
     ol.prt_desc,
     ol.orl_quantity,
@@ -357,10 +336,10 @@ CREATE OR REPLACE VIEW daily_orders_updated AS (
     JOIN ord_status os ON os.ord_status_idx = oh.ord_status
     
     WHERE orl_kitmaster_id = 0
-    and oh.ord_no in (
+    AND oh.ord_no in (
         SELECT *
         from dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
-        'SELECT ord_no FROM daily_orders_updated') as t1(ord_no integer)
+        'SELECT ord_no FROM daily_orders_updated WHERE change_type <> ''CONVERTED PENDING''') as t1(ord_no integer)
     )
     AND ol.prt_id NOT IN (
         SELECT prt_id
@@ -376,17 +355,5 @@ CREATE OR REPLACE VIEW daily_orders_updated AS (
         )
     )       
     AND oh.ord_status NOT IN ('D', 'E', 'F')
-    AND NOT (
-        oh.ord_no IN (
-            SELECT *
-            FROM dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
-            'SELECT ord_no FROM daily_orders_updated WHERE change_type = \'PACKING SLIP\'')
-            AS temp_table(ord_no INTEGER)
-        )
-        AND (
-            oh.ord_date = now()::DATE
-            OR oh.ord_date = now()::DATE - 1
-        )
-    )
     ORDER BY sal_name, ord_no, orl_sort_idx
 )

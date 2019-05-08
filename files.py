@@ -1,4 +1,5 @@
 import os
+from subprocess import check_output
 import shutil
 import pdfkit
 import datetime
@@ -19,7 +20,7 @@ def format_html(html_path):
 def html_generator():
     vbs_file = r'\files\vba\DAILY ORDERS.vbs'
     vbs_path = f'{Config.PARENT_DIR}{vbs_file}'
-    os.system(f'"{vbs_path}"')
+    check_output(f'"{vbs_path}"', shell=True)
 
 
 def time_stamp_generator():

@@ -1,5 +1,5 @@
 import psycopg2.extensions
-from sigm import sigm_connect, log_connect
+from sigm import sigm_connect, log_connect, dev_check
 from os.path import dirname, abspath
 import pdfkit
 
@@ -19,3 +19,30 @@ class Config:
 
     PATH_WKTHMLTOPDF = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
     PDF_CONFIG = pdfkit.configuration(wkhtmltopdf=PATH_WKTHMLTOPDF)
+
+    if not dev_check():
+        TASK_SCHEDULE = [
+            {
+                'name': 'morning',
+                'hour': 12,
+                'minute': 0
+             },
+            {
+                'name': 'afternoon',
+                'hour': 16,
+                'minute': 55
+            }
+        ]
+    else:
+        TASK_SCHEDULE = [
+            {
+                'name': 'morning',
+                'hour': 12,
+                'minute': 0
+            },
+            {
+                'name': 'afternoon',
+                'hour': 16,
+                'minute': 55
+            }
+        ]

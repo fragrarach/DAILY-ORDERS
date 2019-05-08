@@ -75,9 +75,15 @@ def email_handler():
             if datetime.datetime.today().weekday() not in (5, 6):
                 email_body = 'No orders entered for current report time frame.'
                 if salesman == 'MARK STACHOWSKI':
-                    send_email(email_body, 'mark.s@quatroair.com')
+                    if not dev_check():
+                        send_email(email_body, 'mark.s@quatroair.com')
+                    else:
+                        send_email(email_body, 'jan.z@quatroair.com')
                 elif salesman == 'GREG PHILLIPS':
-                    send_email(email_body, 'greg.p@quatroair.com')
+                    if not dev_check():
+                        send_email(email_body, 'greg.p@quatroair.com')
+                    else:
+                        send_email(email_body, 'jan.z@quatroair.com')
 
 
 if __name__ == "__main__":
