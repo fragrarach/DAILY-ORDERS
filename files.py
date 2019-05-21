@@ -23,6 +23,7 @@ def html_generator():
     check_output(f'"{vbs_path}"', shell=True)
 
 
+# TODO : Move time_stamp_generator to data module
 def time_stamp_generator():
     return datetime.datetime.now().strftime('%H00-%d-%m-%Y')
 
