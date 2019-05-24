@@ -22,18 +22,18 @@ THEN
             AND NEW.ord_status NOT IN ('C', 'E', 'F')
         THEN
             PERFORM pg_notify(
-                'daily_orders', '' 
-                || 'CONVERTED QUOTE' || ', '
-                || NEW.ord_no || ''
+                'daily_orders', '['
+                || 'CONVERTED QUOTE' || '], ['
+                || NEW.ord_no || ']'
             );
         ELSIF
             OLD.ord_status = 'D'
             AND NEW.ord_status IN ('A', 'B')
         THEN
             PERFORM pg_notify(
-                'daily_orders', ''
-                || 'CONVERTED PENDING' || ', '
-                || NEW.ord_no || ''
+                'daily_orders', '['
+                || 'CONVERTED PENDING' || '], ['
+                || NEW.ord_no || ']'
             );
         END IF;
     END IF;
@@ -62,10 +62,10 @@ THEN
             AND NEW.prt_no <> ''
         THEN
             PERFORM pg_notify(
-                'daily_orders', '' 
-                || 'ADDED PART' || ', '
-                || NEW.ord_no || ', '
-                || NEW.orl_id || ''
+                'daily_orders', '['
+                || 'ADDED PART' || '], ['
+                || NEW.ord_no || '], ['
+                || NEW.orl_id || ']'
             );
         END IF;
         
@@ -73,11 +73,11 @@ THEN
             OLD.orl_price <> NEW.orl_price
         THEN
             PERFORM pg_notify(
-                'daily_orders', '' 
-                || 'PRICE CHANGED' || ', '
-                || NEW.ord_no || ', '
-                || NEW.orl_id || ', '
-                || OLD.orl_price || ''
+                'daily_orders', '['
+                || 'PRICE CHANGED' || '], ['
+                || NEW.ord_no || '], ['
+                || NEW.orl_id || '], ['
+                || OLD.orl_price || ']'
             );
         END IF;
         
@@ -98,14 +98,14 @@ THEN
     THEN
         IF OLD.prt_no <> '' THEN
             PERFORM pg_notify(
-                'daily_orders', '' 
-                || 'REMOVED PART' || ', '
-                || OLD.ord_no || ', '
-                || OLD.orl_id || ', '
-                || OLD.orl_price || ', '
-                || OLD.prt_no || ', '
-                || OLD.orl_quantity || ', '
-                || OLD.prt_dscnt || ''
+                'daily_orders', '['
+                || 'REMOVED PART' || '], ['
+                || OLD.ord_no || '], ['
+                || OLD.orl_id || '], ['
+                || OLD.orl_price || '], ['
+                || OLD.prt_no || '], ['
+                || OLD.orl_quantity || '], ['
+                || OLD.prt_dscnt || ']'
             );
         END IF;
     END IF;

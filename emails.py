@@ -3,31 +3,39 @@ import datetime
 import files
 
 
-# Insert HTML files into email body, clean HTML folders, generate PDFs, send emails
-def email_handler():
-    # TODO : Move salesmen and groupings to config class
-    salesmen_list = ['MARK STACHOWSKI', 'GREG PHILLIPS']
-    grouping_list = ['NEW', 'QUOTES', 'PENDING', 'UPDATED', 'UPDATED QUOTES']
+def order_email(config, ord_no, email_to, email_cc):
+    email_body = ''
+    email_body = files.email_body_generator(config, email_body, ord_no, header=None)
+    email_pdf = files.pdf_generator(config, email_body)
+    attachments = [email_pdf]
+    time_stamp = files.time_stamp_generator()
+    subject = f'{ord_no} {time_stamp}'
+    quatro.send_email(email_body, [email_to], [email_cc], attachments, subject=subject)
+    files.delete_pdf_file(email_pdf)
 
-    for salesman in salesmen_list:
+
+# Insert HTML files into email body, clean HTML folders, generate PDFs, send emails
+def salesman_emails(config):
+    print('Starting salesmen emails')
+    for salesman in config.SALESMEN:
         email_body = ''
-        for grouping in grouping_list:
-            email_body = files.email_body_generator(grouping, salesman, email_body)
+        for grouping in config.GROUPINGS:
+            file_name = f'{salesman} {grouping}'
+            email_body = files.email_body_generator(config, email_body, file_name, header=grouping)
 
         if email_body != '':
-            attachments = []
-            email_pdf = files.pdf_generator(email_body)
-            attachments.append(email_pdf)
+            email_pdf = files.pdf_generator(config, email_body)
+            attachments = [email_pdf]
 
             time_stamp = files.time_stamp_generator()
             subject = f'{salesman} {time_stamp}'
 
             if salesman == 'MARK STACHOWSKI':
                 quatro.send_email(email_body, ['mark.s@quatroair.com'], ['sanjay.m@quatroair.com'],
-                                  [attachments], subject=subject)
+                                  attachments, subject=subject)
             elif salesman == 'GREG PHILLIPS':
                 quatro.send_email(email_body, ['greg.p@quatroair.com'], ['sanjay.m@quatroair.com'],
-                                  [attachments], subject=subject)
+                                  attachments, subject=subject)
             files.delete_pdf_file(email_pdf)
         else:
             if datetime.datetime.today().weekday() not in (5, 6):
@@ -36,7 +44,3 @@ def email_handler():
                     quatro.send_email(email_body, ['mark.s@quatroair.com'], ['sanjay.m@quatroair.com'])
                 elif salesman == 'GREG PHILLIPS':
                     quatro.send_email(email_body, ['greg.p@quatroair.com'], ['sanjay.m@quatroair.com'])
-
-
-if __name__ == "__main__":
-    email_handler()

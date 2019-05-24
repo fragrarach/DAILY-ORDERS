@@ -4,7 +4,7 @@ import pdfkit
 
 
 class Config:
-    LISTEN_CHANNEL = 'alert'
+    LISTEN_CHANNEL = 'daily_orders'
 
     def __init__(self):
         self.sigm_connection, self.sigm_db_cursor = sigm_connect(Config.LISTEN_CHANNEL)
@@ -24,16 +24,16 @@ class Config:
              },
             {
                 'name': 'afternoon',
-                'hour': 16,
-                'minute': 55
+                'hour': 17,
+                'minute': 2
             }
         ]
     else:
         TASK_SCHEDULE = [
             {
                 'name': 'morning',
-                'hour': 12,
-                'minute': 0
+                'hour': 10,
+                'minute': 37
             },
             {
                 'name': 'afternoon',
@@ -41,3 +41,19 @@ class Config:
                 'minute': 55
             }
         ]
+
+    CHANGED_ORDERS = []
+
+    SALESMEN = ['MARK STACHOWSKI', 'GREG PHILLIPS']
+    GROUPINGS = ['NEW', 'QUOTES', 'PENDING', 'UPDATED', 'UPDATED QUOTES']
+
+    # TODO : Convert to table on LOG DB
+    EMAILS = {
+        'BURNIE': 'sales@quatroair.com',
+        'CENI': 'sales@quatroair.com',
+        'JAN': 'jan.z@quatroair.com',
+        'SANJAY': 'sanjay.m@quatroair.com',
+        'CARMY': 'carmy.m@quatroair.com',
+        'HENRY': 'henry.h@quatroair.com',
+        'GERRY': 'gerry.b@aerofil.ca'
+    }
