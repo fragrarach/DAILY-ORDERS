@@ -25,7 +25,10 @@ THEN
                 NEW.ord_date <> now()::DATE
                 OR NEW.ord_no IN (
                     SELECT ord_no
-                    FROM dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM', 'select * from daily_orders') AS t1(ord_no INTEGER)
+                    FROM dblink(
+                        'dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
+                        'select * from daily_orders'
+                    ) AS t1(ord_no INTEGER)
                 )
             )
         THEN
@@ -308,7 +311,10 @@ THEN
             )
             OR NEW.ord_no IN (
                 SELECT ord_no
-                FROM dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM', 'select * from daily_orders') AS t1(ord_no INTEGER)
+                FROM dblink(
+                    'dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
+                    'select * from daily_orders'
+                ) AS t1(ord_no INTEGER)
             )
         THEN
             IF
@@ -359,7 +365,10 @@ THEN
             )
             OR OLD.ord_no IN (
                 SELECT ord_no 
-                FROM dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM', 'select * from daily_orders') AS t1(ord_no INTEGER)
+                FROM dblink(
+                    'dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
+                    'select * from daily_orders'
+                ) AS t1(ord_no INTEGER)
             )
 
         THEN

@@ -59,7 +59,7 @@ def exclusion_log(config):
     config.log_db_cursor.execute(sql_exp)
     print('Cleared daily_orders table on log DB')
 
-    grouping_view_list = ['', '_quotes', '_pending']
+    grouping_view_list = ['', '_quotes', '_pending', '_updated']
 
     for grouping in grouping_view_list:
         sql_exp = f'SELECT ord_no FROM daily_orders{grouping}'
@@ -70,7 +70,7 @@ def exclusion_log(config):
             for cell in row:
                 ord_no = cell
                 sql_exp = f'INSERT INTO daily_orders (ord_no) VALUES ({ord_no})'
-                print('Added order ord_no to daily_orders table on log DB')
+                print(f'Added order {ord_no} to daily_orders table on log DB')
                 config.log_db_cursor.execute(sql_exp)
 
 

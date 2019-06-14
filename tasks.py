@@ -40,7 +40,7 @@ def listen_task(config, notify):
         statements.printed_packing_slip(config, change_type, ord_no)
 
     elif change_type == 'CHANGED ORDER':
-        data.changed_orders(config, ord_no)
+        data.changed_order(config, ord_no)
 
     elif change_type == 'SAVED ORDER':
         data.saved_order(config, ord_no, raw_payload)

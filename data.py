@@ -37,7 +37,7 @@ def removed_part_payload_handler(payload):
     return orl_id, orl_price, prt_no, orl_quantity, prt_dscnt
 
 
-def changed_orders(config, ord_no):
+def changed_order(config, ord_no):
     if ord_no not in config.CHANGED_ORDERS:
         config.CHANGED_ORDERS.append(ord_no)
 
@@ -54,8 +54,11 @@ def saved_order(config, ord_no, payload):
         if creator:
             email_to = config.EMAILS[f'{creator}']
             email_cc = config.EMAILS[f'{user}']
-        else:
+        elif user in config.EMAILS:
             email_to = config.EMAILS[f'{user}']
+            email_cc = ''
+        else:
+            email_to = config.EMAILS['DEFAULT']
             email_cc = ''
         emails.order_email(config, ord_no, email_to, email_cc)
 

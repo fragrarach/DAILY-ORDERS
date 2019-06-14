@@ -49,11 +49,14 @@ class Config:
 
     # TODO : Convert to table on LOG DB
     EMAILS = {
+        'DEFAULT': 'sales@quatroair.com',
         'BURNIE': 'sales@quatroair.com',
         'CENI': 'sales@quatroair.com',
         'JAN': 'jan.z@quatroair.com',
         'SANJAY': 'sanjay.m@quatroair.com',
         'CARMY': 'carmy.m@quatroair.com',
         'HENRY': 'henry.h@quatroair.com',
-        'GERRY': 'gerry.b@aerofil.ca'
+        'GERRY': 'gerry.b@aerofil.ca',
+        'GREG': 'greg.p@quatroair.com',
+        'MARK': 'mark.s@quatroair.com'
     }
