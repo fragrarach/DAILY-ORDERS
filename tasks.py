@@ -39,6 +39,9 @@ def listen_task(config, notify):
     elif change_type == 'PACKING SLIP':
         statements.printed_packing_slip(config, change_type, ord_no)
 
+    elif change_type == 'CANCELLED ORDER':
+        statements.cancelled_order(config, ord_no)
+
     elif change_type == 'CHANGED ORDER':
         data.changed_order(config, ord_no)
 

@@ -45,6 +45,12 @@ def printed_packing_slip(config, change_type, ord_no):
     config.log_db_cursor.execute(sql_exp)
 
 
+def cancelled_order(config, ord_no):
+    sql_exp = f'DELETE FROM daily_orders WHERE ord_no = {ord_no}'
+    print(sql_exp)
+    config.log_db_cursor.execute(sql_exp)
+
+
 def get_order_creator(config, ord_no):
     sql_exp = f"SELECT user_name FROM order_header WHERE ord_no = {ord_no} AND tg_op = 'INSERT'"
     result_set = quatro.sql_query(sql_exp, config.log_db_cursor)
@@ -59,7 +65,7 @@ def exclusion_log(config):
     config.log_db_cursor.execute(sql_exp)
     print('Cleared daily_orders table on log DB')
 
-    grouping_view_list = ['', '_quotes', '_pending', '_updated']
+    grouping_view_list = ['', '_quotes', '_pending', '_updated', '_cancelled']
 
     for grouping in grouping_view_list:
         sql_exp = f'SELECT ord_no FROM daily_orders{grouping}'

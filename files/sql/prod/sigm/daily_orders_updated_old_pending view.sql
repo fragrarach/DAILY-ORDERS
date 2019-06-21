@@ -1,5 +1,5 @@
---DROP VIEW IF EXISTS daily_orders_pending;
-CREATE OR REPLACE VIEW daily_orders_pending AS (
+DROP VIEW IF EXISTS daily_orders_updated_old_pending;
+CREATE OR REPLACE VIEW daily_orders_updated_old_pending AS (
     SELECT
     --Line reference
     ol.orl_id,
@@ -334,15 +334,12 @@ CREATE OR REPLACE VIEW daily_orders_pending AS (
     JOIN salesman s ON c.sal_id = s.sal_id
     JOIN orc_type oc ON oc.orc_type_idx = oh.ord_type
     JOIN ord_status os ON os.ord_status_idx = oh.ord_status
-
+    
     WHERE orl_kitmaster_id = 0
-    AND (oh.ord_date = now()::DATE OR oh.ord_date = now()::DATE - 1)
-    AND oh.ord_no not in (
+    AND oh.ord_no in (
         SELECT *
-        FROM dblink(
-            'dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
-            'select * from daily_orders'
-        ) AS t1(test INTEGER)
+        from dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
+        'SELECT ord_no FROM daily_orders_updated WHERE change_type <> ''CONVERTED QUOTE''') as t1(ord_no integer)
     )
     AND ol.prt_id NOT IN (
         SELECT prt_id
@@ -356,7 +353,7 @@ CREATE OR REPLACE VIEW daily_orders_pending AS (
                 WHERE order_line.ord_no = oh.ord_no
             )
         )
-    )
+    )       
     AND oh.ord_status = 'D'
     ORDER BY sal_name, ord_no, orl_sort_idx
 )

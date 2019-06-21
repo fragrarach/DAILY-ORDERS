@@ -1,5 +1,5 @@
---DROP VIEW IF EXISTS daily_orders_pending;
-CREATE OR REPLACE VIEW daily_orders_pending AS (
+DROP VIEW IF EXISTS daily_orders_cancelled;
+CREATE OR REPLACE VIEW daily_orders_cancelled AS (
     SELECT
     --Line reference
     ol.orl_id,
@@ -357,6 +357,6 @@ CREATE OR REPLACE VIEW daily_orders_pending AS (
             )
         )
     )
-    AND oh.ord_status = 'D'
+    AND oh.ord_status = 'C'
     ORDER BY sal_name, ord_no, orl_sort_idx
 )

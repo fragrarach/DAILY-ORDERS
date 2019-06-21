@@ -45,7 +45,17 @@ class Config:
     CHANGED_ORDERS = []
 
     SALESMEN = ['MARK STACHOWSKI', 'GREG PHILLIPS']
-    GROUPINGS = ['NEW', 'QUOTES', 'PENDING', 'UPDATED', 'UPDATED QUOTES']
+
+    GROUPINGS = [
+        'NEW',
+        'NEW PENDING',
+        'UPDATED PENDING',
+        'OLD PENDING',
+        'QUOTES',
+        'UPDATED',
+        'UPDATED QUOTES',
+        'CANCELLED'
+    ]
 
     # TODO : Convert to table on LOG DB
     EMAILS = {

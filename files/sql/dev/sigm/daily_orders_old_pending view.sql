@@ -1,5 +1,5 @@
---DROP VIEW IF EXISTS daily_orders_pending;
-CREATE OR REPLACE VIEW daily_orders_pending AS (
+DROP VIEW IF EXISTS daily_orders_old_pending;
+CREATE OR REPLACE VIEW daily_orders_old_pending AS (
     SELECT
     --Line reference
     ol.orl_id,
@@ -336,14 +336,14 @@ CREATE OR REPLACE VIEW daily_orders_pending AS (
     JOIN ord_status os ON os.ord_status_idx = oh.ord_status
 
     WHERE orl_kitmaster_id = 0
-    AND (oh.ord_date = now()::DATE OR oh.ord_date = now()::DATE - 1)
-    AND oh.ord_no not in (
-        SELECT *
-        FROM dblink(
-            'dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
-            'select * from daily_orders'
-        ) AS t1(test INTEGER)
-    )
+--    AND (oh.ord_date = now()::DATE OR oh.ord_date = now()::DATE - 1)
+--    AND oh.ord_no not in (
+--        SELECT *
+--        FROM dblink(
+--            'dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
+--            'select * from daily_orders'
+--        ) AS t1(test INTEGER)
+--    )
     AND ol.prt_id NOT IN (
         SELECT prt_id
         FROM order_line

@@ -35,6 +35,15 @@ THEN
                 || 'CONVERTED PENDING' || '], ['
                 || NEW.ord_no || ']'
             );
+        ELSIF
+            OLD.ord_status <> 'C'
+            AND NEW.ord_status = 'C'
+        THEN
+            PERFORM pg_notify(
+                'daily_orders', '['
+                || 'CANCELLED ORDER' || '], ['
+                || NEW.ord_no || ']'
+            );
         END IF;
     END IF;
     
