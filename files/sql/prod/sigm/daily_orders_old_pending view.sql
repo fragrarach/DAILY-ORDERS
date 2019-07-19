@@ -337,6 +337,7 @@ CREATE OR REPLACE VIEW daily_orders_old_pending AS (
 
     WHERE orl_kitmaster_id = 0
     AND oh.ord_no NOT IN (SELECT ord_no FROM daily_orders_pending)
+    AND oh.ord_no NOT IN (SELECT ord_no FROM daily_orders_updated_old_pending)
     AND ol.prt_id NOT IN (
         SELECT prt_id
         FROM order_line

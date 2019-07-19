@@ -337,17 +337,19 @@ CREATE OR REPLACE VIEW daily_orders_pending AS (
 
     WHERE orl_kitmaster_id = 0
     AND (oh.ord_date = now()::DATE OR oh.ord_date = now()::DATE - 1)
-    AND oh.ord_no not in (
-        SELECT *
-        FROM dblink(
-            'dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
-            'select * from daily_orders'
-        ) AS t1(test INTEGER)
-    )
-    OR oh.ord_no in (
-        SELECT *
-        from dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
-        'SELECT ord_no FROM daily_orders_updated WHERE change_type = ''CONVERTED QUOTE''') as t1(ord_no integer)
+    AND (
+        oh.ord_no not in (
+            SELECT *
+            FROM dblink(
+                'dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
+                'select * from daily_orders'
+            ) AS t1(test INTEGER)
+        )
+        OR oh.ord_no in (
+            SELECT *
+            from dblink('dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
+            'SELECT ord_no FROM daily_orders_updated WHERE change_type = ''CONVERTED QUOTE''') as t1(ord_no integer)
+        )
     )
     AND ol.prt_id NOT IN (
         SELECT prt_id

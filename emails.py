@@ -1,4 +1,4 @@
-import quatro
+from quatro import log, send_email
 import datetime
 import files
 
@@ -10,13 +10,13 @@ def order_email(config, ord_no, email_to, email_cc):
     attachments = [email_pdf]
     time_stamp = files.time_stamp_generator()
     subject = f'{ord_no} {time_stamp}'
-    quatro.send_email(email_body, [email_to], [email_cc], attachments, subject=subject)
+    send_email(email_body, [email_to], [email_cc], attachments, subject=subject)
     files.delete_pdf_file(email_pdf)
 
 
 # Insert HTML files into email body, clean HTML folders, generate PDFs, send emails
 def salesman_emails(config):
-    print('Starting salesmen emails')
+    log('Starting salesmen emails')
     for salesman in config.SALESMEN:
         email_body = ''
         for grouping in config.GROUPINGS:
@@ -31,16 +31,16 @@ def salesman_emails(config):
             subject = f'{salesman} {time_stamp}'
 
             if salesman == 'MARK STACHOWSKI':
-                quatro.send_email(email_body, ['mark.s@quatroair.com'], ['sanjay.m@quatroair.com'],
-                                  attachments, subject=subject)
+                send_email(email_body, ['mark.s@quatroair.com'], ['sanjay.m@quatroair.com'],
+                           attachments, subject=subject)
             elif salesman == 'GREG PHILLIPS':
-                quatro.send_email(email_body, ['greg.p@quatroair.com'], ['sanjay.m@quatroair.com'],
-                                  attachments, subject=subject)
+                send_email(email_body, ['greg.p@quatroair.com'], ['sanjay.m@quatroair.com'],
+                           attachments, subject=subject)
             files.delete_pdf_file(email_pdf)
         else:
             if datetime.datetime.today().weekday() not in (5, 6):
                 email_body = 'No orders entered for current report time frame.'
                 if salesman == 'MARK STACHOWSKI':
-                    quatro.send_email(email_body, ['mark.s@quatroair.com'], ['sanjay.m@quatroair.com'])
+                    send_email(email_body, ['mark.s@quatroair.com'], ['sanjay.m@quatroair.com'])
                 elif salesman == 'GREG PHILLIPS':
-                    quatro.send_email(email_body, ['greg.p@quatroair.com'], ['sanjay.m@quatroair.com'])
+                    send_email(email_body, ['greg.p@quatroair.com'], ['sanjay.m@quatroair.com'])

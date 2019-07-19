@@ -336,13 +336,12 @@ CREATE OR REPLACE VIEW daily_orders_cancelled AS (
     JOIN ord_status os ON os.ord_status_idx = oh.ord_status
 
     WHERE orl_kitmaster_id = 0
-    AND (oh.ord_date = now()::DATE OR oh.ord_date = now()::DATE - 1)
-    AND oh.ord_no not in (
-        SELECT *
+    AND oh.ord_no NOT IN (
+        SELECT ord_no
         FROM dblink(
             'dbname=LOG hostaddr=192.168.0.250 port=5493 user=SIGM',
-            'select * from daily_orders'
-        ) AS t1(test INTEGER)
+            'select ord_no from daily_orders_cancelled'
+        ) AS daily_orders(ord_no INTEGER)
     )
     AND ol.prt_id NOT IN (
         SELECT prt_id

@@ -1,4 +1,4 @@
-import quatro
+from quatro import log, sql_query, scalar_data, tabular_data
 
 
 # Insert converted quote data into 'daily_orders_updated' table
@@ -6,7 +6,7 @@ def converted_order(config, change_type, ord_no):
     sql_exp = f'INSERT INTO daily_orders_updated ' \
               f'(change_type, ord_no) ' \
               f'VALUES (\'{change_type}\', {ord_no})'
-    print(sql_exp)
+    log(sql_exp)
     config.log_db_cursor.execute(sql_exp)
 
 
@@ -15,7 +15,7 @@ def added_part(config, change_type, ord_no, orl_id):
     sql_exp = f'INSERT INTO daily_orders_updated ' \
               f'(change_type, ord_no, orl_id) ' \
               f'VALUES (\'{change_type}\', {ord_no}, {orl_id})'
-    print(sql_exp)
+    log(sql_exp)
     config.log_db_cursor.execute(sql_exp)
 
 
@@ -24,7 +24,7 @@ def price_changed(config, change_type, ord_no, orl_id, orl_price):
     sql_exp = f'INSERT INTO daily_orders_updated ' \
               f'(change_type, ord_no, orl_id, orl_price) ' \
               f'VALUES (\'{change_type}\', {ord_no}, {orl_id}, {orl_price})'
-    print(sql_exp)
+    log(sql_exp)
     config.log_db_cursor.execute(sql_exp)
 
 
@@ -33,7 +33,7 @@ def removed_part(config, change_type, ord_no, orl_id, orl_price, prt_no, orl_qua
     sql_exp = f'INSERT INTO daily_orders_updated ' \
               f'(change_type, ord_no, orl_id, orl_price, prt_no, orl_quantity, prt_dscnt) ' \
               f'VALUES (\'{change_type}\', {ord_no}, {orl_id}, {orl_price}, \'{prt_no}\', {orl_quantity}, {prt_dscnt})'
-    print(sql_exp)
+    log(sql_exp)
     config.log_db_cursor.execute(sql_exp)
 
 
@@ -41,20 +41,14 @@ def printed_packing_slip(config, change_type, ord_no):
     sql_exp = f'INSERT INTO daily_orders_updated ' \
               f'(change_type, ord_no) ' \
               f'VALUES (\'{change_type}\', {ord_no})'
-    print(sql_exp)
-    config.log_db_cursor.execute(sql_exp)
-
-
-def cancelled_order(config, ord_no):
-    sql_exp = f'DELETE FROM daily_orders WHERE ord_no = {ord_no}'
-    print(sql_exp)
+    log(sql_exp)
     config.log_db_cursor.execute(sql_exp)
 
 
 def get_order_creator(config, ord_no):
     sql_exp = f"SELECT user_name FROM order_header WHERE ord_no = {ord_no} AND tg_op = 'INSERT'"
-    result_set = quatro.sql_query(sql_exp, config.log_db_cursor)
-    creator = quatro.scalar_data(result_set)
+    result_set = sql_query(sql_exp, config.log_db_cursor)
+    creator = scalar_data(result_set)
     return creator
 
 
@@ -63,7 +57,7 @@ def get_order_creator(config, ord_no):
 def exclusion_log(config):
     sql_exp = f'DELETE FROM daily_orders'
     config.log_db_cursor.execute(sql_exp)
-    print('Cleared daily_orders table on log DB')
+    log('Cleared daily_orders table on log DB')
 
     grouping_view_list = ['', '_quotes', '_pending', '_updated', '_cancelled']
 
@@ -75,8 +69,18 @@ def exclusion_log(config):
         for row in result_set:
             for cell in row:
                 ord_no = cell
-                sql_exp = f'INSERT INTO daily_orders (ord_no) VALUES ({ord_no})'
-                print(f'Added order {ord_no} to daily_orders table on log DB')
+                if grouping != '_cancelled':
+                    sql_exp = f'INSERT INTO daily_orders (ord_no) VALUES ({ord_no})'
+                    log(f'Added order {ord_no} to daily_orders table on log DB')
+                else:
+                    sql_exp = f'INSERT INTO daily_orders_cancelled (ord_no)' \
+                              f'SELECT {ord_no} ' \
+                              f'WHERE NOT EXISTS ( ' \
+                              f'    SELECT ord_no ' \
+                              f'    FROM daily_orders_cancelled ' \
+                              f'    WHERE ord_no = {ord_no} ' \
+                              f')'
+                    log(f'Added order {ord_no} to daily_orders_cancelled table on log DB')
                 config.log_db_cursor.execute(sql_exp)
 
 
@@ -85,11 +89,11 @@ def exclusion_log(config):
 def clear_updated(config):
     sql_exp = f'DELETE FROM daily_orders_updated'
     config.log_db_cursor.execute(sql_exp)
-    print('Cleared daily_orders_updated table on log DB')
+    log('Cleared daily_orders_updated table on log DB')
 
 
 def ord_no_view(config, view):
     sql_exp = f'SELECT DISTINCT ord_no FROM {view}'
-    result_set = quatro.sql_query(sql_exp, config.sigm_db_cursor)
-    ord_nos = quatro.tabular_data(result_set)
+    result_set = sql_query(sql_exp, config.sigm_db_cursor)
+    ord_nos = tabular_data(result_set)
     return ord_nos

@@ -1,4 +1,4 @@
-DROP VIEW IF EXISTS daily_orders_updated_old_pending;
+--DROP VIEW IF EXISTS daily_orders_updated_old_pending;
 CREATE OR REPLACE VIEW daily_orders_updated_old_pending AS (
     SELECT
     --Line reference
