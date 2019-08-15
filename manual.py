@@ -1,6 +1,6 @@
-from quatro import init_app_log_dir, log, add_sql_files, start_scheduler, listen, configuration as c
+from quatro import init_app_log_dir, log, add_sql_files, configuration as c
 from config import Config
-from tasks import scheduler_task, listen_task
+from tasks import scheduler_task
 
 
 def main():
@@ -9,8 +9,7 @@ def main():
     log(f'Starting {__file__}')
     c.config.sql_connections()
     add_sql_files()
-    start_scheduler(scheduler_task)
-    listen(listen_task)
+    scheduler_task(scheduler_task)
 
 
 if __name__ == "__main__":

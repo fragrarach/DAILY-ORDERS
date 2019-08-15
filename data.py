@@ -1,3 +1,4 @@
+from quatro import configuration as c
 import re
 import files
 import emails
@@ -37,32 +38,32 @@ def removed_part_payload_handler(payload):
     return orl_id, orl_price, prt_no, orl_quantity, prt_dscnt
 
 
-def changed_order(config, ord_no):
-    if ord_no not in config.CHANGED_ORDERS:
-        config.CHANGED_ORDERS.append(ord_no)
+def changed_order(ord_no):
+    if ord_no not in c.config.CHANGED_ORDERS:
+        c.config.CHANGED_ORDERS.append(ord_no)
 
 
-def saved_order(config, ord_no, payload):
-    if ord_no in config.CHANGED_ORDERS:
-        config.CHANGED_ORDERS.remove(ord_no)
-        files.html_generator(config, ord_no)
+def saved_order(ord_no, payload):
+    if ord_no in c.config.CHANGED_ORDERS:
+        c.config.CHANGED_ORDERS.remove(ord_no)
+        files.html_generator(ord_no)
 
         sigm_string = payload.split('], [')[-1][:-1]
         user = re.findall(r'(?<=aSIGMWIN\.EXE u)(.*)(?= m)', sigm_string)[0]
 
-        creator = statements.get_order_creator(config, ord_no)
+        creator = statements.get_order_creator(c.config, ord_no)
         if creator:
-            email_to = config.EMAILS[f'{creator}']
-            email_cc = config.EMAILS[f'{user}']
-        elif user in config.EMAILS:
-            email_to = config.EMAILS[f'{user}']
+            email_to = c.config.EMAILS[f'{creator}']
+            email_cc = c.config.EMAILS[f'{user}']
+        elif user in c.config.EMAILS:
+            email_to = c.config.EMAILS[f'{user}']
             email_cc = ''
         else:
-            email_to = config.EMAILS['DEFAULT']
+            email_to = c.config.EMAILS['DEFAULT']
             email_cc = ''
-        emails.order_email(config, ord_no, email_to, email_cc)
+        emails.order_email(ord_no, email_to, email_cc)
 
 
-def clear_order(config, ord_no):
-    if ord_no not in config.CHANGED_ORDERS:
-        config.CHANGED_ORDERS.remove(ord_no)
+def clear_order(ord_no):
+    if ord_no not in c.config.CHANGED_ORDERS:
+        c.config.CHANGED_ORDERS.remove(ord_no)
