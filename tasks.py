@@ -1,4 +1,4 @@
-from quatro import log, dev_check, configuration as c
+from quatro import log, dev_check
 import files
 import emails
 import statements
@@ -6,12 +6,20 @@ import data
 
 
 def daily_orders_task():
-    log('Starting scheduled task.')
-    files.html_generator()
-    emails.salesman_emails()
-    if not dev_check():
-        statements.exclusion_log()
-        statements.clear_updated()
+    print('SUCK MY PIMPLE DICK')
+    # log('Starting scheduled daily orders task.')
+    # files.html_generator()
+    # emails.salesman_emails()
+    # if not dev_check():
+    #     statements.exclusion_log()
+    #     statements.clear_updated()
+
+
+def weekly_pending_task():
+    print('SUCK MY NIPPLE DICK')
+    log('Starting scheduled weekly pending orders task.')
+    files.html_generator(pending=True)
+    emails.salesman_emails(cc_override=['mark.c@quatroair.com'], pending_orders=True)
 
 
 def listen_task(notify):

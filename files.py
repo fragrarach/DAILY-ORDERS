@@ -19,20 +19,27 @@ def format_html(html_path):
 
 
 # Run VBS script which runs Excel (VBA) file, which generates HTML files
-def html_generator(ord_no=None):
+def html_generator(ord_no=None, pending=None):
     if ord_no:
         os.environ['ORDER_NUMBER'] = ord_no
         log(f'Generating HTML file for order #: {ord_no}')
+    elif pending:
+        os.environ['PENDING_ORDERS'] = 'TRUE'
+        log(f'Generating HTML file for pending orders')
     else:
         log(f'Generating HTML files for salesmen')
 
-    vbs_file = r'\files\vba\DAILY ORDERS.vbs'
+    # vbs_file = r'\files\vba\DAILY ORDERS.vbs'
+    vbs_file = r'\files\vba\DAILY ORDERS DEV.vbs'
     vbs_path = f'{c.config.parent_dir}{vbs_file}'
     call(f'"{vbs_path}"', shell=True)
 
     if ord_no:
         os.environ['ORDER_NUMBER'] = ''
         log(f'HTML file generation complete for order #: {ord_no}')
+    elif pending:
+        os.environ['PENDING_ORDERS'] = ''
+        log(f'HTML file generation complete for pending orders')
     else:
         log(f'HTML file generation complete for salesmen')
 

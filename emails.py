@@ -17,7 +17,7 @@ def order_email(ord_no, email_to, email_cc):
 
 
 # Insert HTML files into email body, clean HTML folders, generate PDFs, send emails
-def salesman_emails():
+def salesman_emails(cc_override=None, pending_orders=False):
     log('Starting salesmen emails')
     for salesman in c.config.SALESMEN:
         email_body = ''
@@ -30,16 +30,18 @@ def salesman_emails():
             # attachments = [email_pdf]
 
             time_stamp = files.time_stamp_generator()
-            subject = f'{salesman} {time_stamp}'
+            subject = f'{salesman} {time_stamp}' if pending_orders is False else 'PENDING ORDERS TO BE REVISED'
 
             if salesman == 'MARK STACHOWSKI':
-                send_email(email_body, ['mark.s@quatroair.com'], [''],
+                cc_list = cc_override if cc_override is not None else ['']
+                send_email(email_body, ['mark.s@quatroair.com'], cc_list,
                            # attachments,
                            subject=subject)
             elif salesman == 'GREG PHILLIPS':
-                send_email(email_body, ['greg.p@quatroair.com'], ['burnie.s@quatroair.com'],
-                           # attachments,
-                           subject=subject)
+                if pending_orders is False:
+                    send_email(email_body, ['greg.p@quatroair.com'], ['burnie.s@quatroair.com'],
+                               # attachments,
+                               subject=subject)
             # files.delete_pdf_file(email_pdf)
         else:
             if datetime.datetime.today().weekday() not in (5, 6):
@@ -47,4 +49,5 @@ def salesman_emails():
                 if salesman == 'MARK STACHOWSKI':
                     send_email(email_body, ['mark.s@quatroair.com'], [''])
                 elif salesman == 'GREG PHILLIPS':
-                    send_email(email_body, ['greg.p@quatroair.com'], ['burnie.s@quatroair.com'])
+                    if pending_orders is False:
+                        send_email(email_body, ['greg.p@quatroair.com'], ['burnie.s@quatroair.com'])

@@ -1,6 +1,7 @@
-from quatro import sigm_connect, log_connect, dev_check
+from quatro import sigm_connect, log_connect
 from os.path import dirname, abspath
 import pdfkit
+import calendar
 
 
 class Config:
@@ -21,18 +22,28 @@ class Config:
     PATH_WKTHMLTOPDF = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
     PDF_CONFIG = pdfkit.configuration(wkhtmltopdf=PATH_WKTHMLTOPDF)
 
-    TASK_SCHEDULE = [
-        {
-            'name': 'morning',
-            'hour': 12,
-            'minute': 0
-        },
-        {
-            'name': 'afternoon',
-            'hour': 16,
-            'minute': 55
-        }
-    ]
+    TASK_SCHEDULE = {
+        'daily_orders_task': [
+            {
+                'name': 'morning',
+                'hour': 12,
+                'minute': 0
+            },
+            {
+                'name': 'afternoon',
+                'hour': 16,
+                'minute': 55
+            }
+        ],
+        'weekly_pending_task': [
+            {
+                'name': 'monday morning',
+                'weekday': calendar.MONDAY,
+                'hour': 7,
+                'minute': 0
+            }
+        ]
+    }
 
     CHANGED_ORDERS = []
 
