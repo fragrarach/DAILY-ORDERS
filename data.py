@@ -51,7 +51,7 @@ def saved_order(ord_no, payload):
         sigm_string = payload.split('], [')[-1][:-1]
         user = re.findall(r'(?<=aSIGMWIN\.EXE u)(.*)(?= m)', sigm_string)[0]
 
-        creator = statements.get_order_creator(c.config, ord_no)
+        creator = statements.get_order_creator(ord_no)
         if creator:
             email_to = c.config.EMAILS[f'{creator}']
             email_cc = c.config.EMAILS[f'{user}']

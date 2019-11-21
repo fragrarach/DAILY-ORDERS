@@ -5,7 +5,7 @@ import statements
 import data
 
 
-def scheduler_task():
+def daily_orders_task():
     log('Starting scheduled task.')
     files.html_generator()
     emails.salesman_emails()
