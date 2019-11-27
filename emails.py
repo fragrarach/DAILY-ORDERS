@@ -33,7 +33,7 @@ def salesman_emails(cc_override=None, pending_orders=False):
             subject = f'{salesman} {time_stamp}' if pending_orders is False else 'PENDING ORDERS TO BE REVISED'
 
             if salesman == 'MARK STACHOWSKI':
-                cc_list = cc_override if cc_override is not None else ['']
+                cc_list = cc_override if cc_override is not None else ['ceni.t@quatroair.com']
                 send_email(email_body, ['mark.s@quatroair.com'], cc_list,
                            # attachments,
                            subject=subject)

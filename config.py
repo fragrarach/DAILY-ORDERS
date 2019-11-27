@@ -55,6 +55,7 @@ class Config:
         'UPDATED PENDING',
         'OLD PENDING',
         'QUOTES',
+        'OLD QUOTES',
         'UPDATED',
         'UPDATED QUOTES',
         'CANCELLED'

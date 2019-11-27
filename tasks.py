@@ -6,17 +6,15 @@ import data
 
 
 def daily_orders_task():
-    print('SUCK MY PIMPLE DICK')
-    # log('Starting scheduled daily orders task.')
-    # files.html_generator()
-    # emails.salesman_emails()
-    # if not dev_check():
-    #     statements.exclusion_log()
-    #     statements.clear_updated()
+    log('Starting scheduled daily orders task.')
+    files.html_generator()
+    emails.salesman_emails()
+    if not dev_check():
+        statements.exclusion_log()
+        statements.clear_updated()
 
 
 def weekly_pending_task():
-    print('SUCK MY NIPPLE DICK')
     log('Starting scheduled weekly pending orders task.')
     files.html_generator(pending=True)
     emails.salesman_emails(cc_override=['mark.c@quatroair.com'], pending_orders=True)
