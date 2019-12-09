@@ -30,7 +30,7 @@ def salesman_emails(cc_override=None, pending_orders=False):
             # attachments = [email_pdf]
 
             time_stamp = files.time_stamp_generator()
-            subject = f'{salesman} {time_stamp}' if pending_orders is False else 'PENDING ORDERS TO BE REVISED'
+            subject = f'{salesman} {time_stamp}'
 
             if salesman == 'MARK STACHOWSKI':
                 cc_list = cc_override if cc_override is not None else ['ceni.t@quatroair.com']
@@ -51,3 +51,11 @@ def salesman_emails(cc_override=None, pending_orders=False):
                 elif salesman == 'GREG PHILLIPS':
                     if pending_orders is False:
                         send_email(email_body, ['greg.p@quatroair.com'], ['burnie.s@quatroair.com'])
+
+
+def pending_emails():
+    log('Starting pending email')
+    email_body = ''
+    email_body = files.email_body_generator(email_body, 'MARK STACHOWSKI OLD PENDING', header='OLD PENDING')
+    email_body = files.email_body_generator(email_body, 'MARK STACHOWSKI OLD QUOTES', header='OLD QUOTES')
+    send_email(email_body, ['jan.z@quatroair.com'], ['jan.z@quatroair.com'], subject='PENDING ORDERS TO BE REVISED')

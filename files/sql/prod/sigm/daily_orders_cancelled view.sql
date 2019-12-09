@@ -357,5 +357,6 @@ CREATE OR REPLACE VIEW daily_orders_cancelled AS (
         )
     )
     AND oh.ord_status = 'C'
+    AND oc.ord_type <> 'Blanket Order'
     ORDER BY sal_name, ord_no, orl_sort_idx
 )

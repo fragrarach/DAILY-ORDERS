@@ -1,5 +1,5 @@
-DROP VIEW IF EXISTS daily_orders_old_pending;
-CREATE OR REPLACE VIEW daily_orders_old_pending AS (
+DROP VIEW IF EXISTS public.daily_orders_pending_blankets;
+CREATE OR REPLACE VIEW daily_orders_pending_blankets AS (
     SELECT
     --Line reference
     ol.orl_id,
@@ -336,22 +336,20 @@ CREATE OR REPLACE VIEW daily_orders_old_pending AS (
     JOIN ord_status os ON os.ord_status_idx = oh.ord_status
 
     WHERE orl_kitmaster_id = 0
-    AND oh.ord_no NOT IN (SELECT ord_no FROM daily_orders_pending)
-    AND oh.ord_no NOT IN (SELECT ord_no FROM daily_orders_updated_old_pending)
     AND ol.prt_id NOT IN (
         SELECT prt_id
         FROM order_line
         WHERE prt_id IN (
-            SELECT prt_id 
-            from part_kit
+            SELECT prt_id
+            FROM part_kit
             WHERE pkt_master_prt_id IN (
-                SELECT prt_id 
-                FROM order_line 
+                SELECT prt_id
+                FROM order_line
                 WHERE order_line.ord_no = oh.ord_no
             )
         )
     )
     AND oh.ord_status = 'D'
-    AND oc.ord_type <> 'Blanket Order'
+    AND oc.ord_type = 'Blanket Order'
     ORDER BY sal_name, ord_no, orl_sort_idx
 )

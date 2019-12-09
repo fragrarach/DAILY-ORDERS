@@ -9,15 +9,15 @@ def daily_orders_task():
     log('Starting scheduled daily orders task.')
     files.html_generator()
     emails.salesman_emails()
-    if not dev_check():
-        statements.exclusion_log()
-        statements.clear_updated()
+    # if not dev_check():
+    #     statements.exclusion_log()
+    #     statements.clear_updated()
 
 
 def weekly_pending_task():
     log('Starting scheduled weekly pending orders task.')
     files.html_generator(pending=True)
-    emails.salesman_emails(cc_override=['mark.c@quatroair.com'], pending_orders=True)
+    emails.pending_emails()
 
 
 def listen_task(notify):
@@ -56,3 +56,8 @@ def listen_task(notify):
 
     elif change_type == 'CLEAR ORDER':
         data.clear_order(ord_no)
+
+
+if __name__ == "__main__":
+    daily_orders_task()
+    weekly_pending_task()

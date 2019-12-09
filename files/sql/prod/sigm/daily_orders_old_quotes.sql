@@ -350,5 +350,6 @@
         )
     )
     AND oh.ord_status IN ('E')
+    AND oc.ord_type <> 'Blanket Order'
     ORDER BY sal_name, ord_no, orl_sort_idx
 )

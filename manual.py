@@ -1,6 +1,6 @@
 from quatro import init_app_log_dir, log, add_sql_files, configuration as c
 from config import Config
-from tasks import daily_orders_task
+from tasks import daily_orders_task, weekly_pending_task
 
 
 def main():
@@ -9,7 +9,8 @@ def main():
     log(f'Starting {__file__}')
     c.config.sql_connections()
     add_sql_files()
-    daily_orders_task()
+    # daily_orders_task()
+    weekly_pending_task()
 
 
 if __name__ == "__main__":
